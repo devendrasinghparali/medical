@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>मेडिकल स्टोर डैशबोर्ड (Dashboard)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Quick Graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #appContainer { display: none; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen font-sans text-slate-800">
+
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="flex flex-col items-center justify-center min-h-screen bg-slate-100">
+        <i class="fas fa-spinner fa-spin text-4xl text-emerald-600 mb-3"></i>
+        <p class="text-slate-600 font-medium">डैशबोर्ड लोड हो रहा है...</p>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="appContainer">
+        <!-- Navbar -->
+        <nav class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-hospital-symbol text-emerald-400 text-2xl"></i>
+                    <span class="font-bold text-lg tracking-wide">मेडिकल स्टोर डैशबोर्ड</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded text-sm font-medium transition" title="लॉग आउट">
+                        <i class="fas fa-sign-out-alt mr-1"></i> लॉग आउट
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto p-4 space-y-6">
+
+            <!-- Quick Navigation Cards (Links to all pages) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <a href="ORDER.html" class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-indigo-500 hover:shadow-md transition flex items-center justify-between group">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">मॉर्डन मॉड्यूल</p>
+                        <h3 class="text-lg font-bold text-slate-800 mt-0.5 group-hover:text-indigo-600 transition">ऑर्डर मैनेजमेंट</h3>
+                        <p class="text-xs text-slate-500 mt-1">डिस्ट्रिब्यूटर वाइज ऑर्डर और सर्च</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
+                        <i class="fas fa-pills"></i>
+                    </div>
+                </a>
+
+                <a href="SALES.html" class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-emerald-500 hover:shadow-md transition flex items-center justify-between group">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">वित्तीय मॉड्यूल</p>
+                        <h3 class="text-lg font-bold text-slate-800 mt-0.5 group-hover:text-emerald-600 transition">डेली सेल्स (Sales)</h3>
+                        <p class="text-xs text-slate-500 mt-1">रोजाना कैश और ऑनलाइन बिक्री</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </a>
+
+                <a href="LEN_DEN.html" class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-amber-500 hover:shadow-md transition flex items-center justify-between group">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">खाता बही</p>
+                        <h3 class="text-lg font-bold text-slate-800 mt-0.5 group-hover:text-amber-600 transition">लेना - देना हिसाब</h3>
+                        <p class="text-xs text-slate-500 mt-1">ब्याज आधारित लेन-देन का रिकॉर्ड</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                </a>
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">सिक्योरिटी</p>
+                        <h3 class="text-lg font-bold text-slate-800 mt-0.5">Firebase Auth</h3>
+                        <p class="text-xs text-slate-500 mt-1">सुरक्षित लॉगिन संरक्षित</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Summary Overview Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-xl shadow-sm border-t-2 border-emerald-500">
+                    <p class="text-xs text-slate-500 font-medium">आज की कुल बिक्री (Today Sales)</p>
+                    <h2 id="dashTodaySale" class="text-xl font-bold text-emerald-700 mt-1">₹0</h2>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border-t-2 border-blue-500">
+                    <p class="text-xs text-slate-500 font-medium">इस महीने की बिक्री (Month Sales)</p>
+                    <h2 id="dashMonthSale" class="text-xl font-bold text-blue-700 mt-1">₹0</h2>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border-t-2 border-rose-500">
+                    <p class="text-xs text-slate-500 font-medium">कुल लेना है (Total Lena)</p>
+                    <h2 id="dashTotalLena" class="text-xl font-bold text-rose-600 mt-1">₹0</h2>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border-t-2 border-amber-500">
+                    <p class="text-xs text-slate-500 font-medium">कुल देना है (Total Dena)</p>
+                    <h2 id="dashTotalDena" class="text-xl font-bold text-amber-600 mt-1">₹0</h2>
+                </div>
+            </div>
+
+            <!-- Quick Charts & Recent Highlights Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Mini Sales Overview Chart -->
+                <div class="bg-white p-6 rounded-xl shadow-sm flex flex-col justify-between">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h3 class="text-base font-bold text-slate-800">
+                            <i class="fas fa-chart-bar text-emerald-600 mr-2"></i>बिक्री का संक्षिप्त ग्राफ (Sales Trend)
+                        </h3>
+                        <a href="SALES.html" class="text-xs text-emerald-600 font-semibold hover:underline">सभी देखें &rarr;</a>
+                    </div>
+                    <div class="relative w-full h-64">
+                        <canvas id="dashSalesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Quick Actions & System Info -->
+                <div class="bg-white p-6 rounded-xl shadow-sm flex flex-col justify-between">
+                    <div class="border-b pb-2 mb-4">
+                        <h3 class="text-base font-bold text-slate-800">
+                            <i class="fas fa-bolt text-indigo-600 mr-2"></i>त्वरित शॉर्टकट (Quick Actions)
+                        </h3>
+                    </div>
+                    <div class="space-y-3">
+                        <a href="SALES.html" class="block w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 p-3 rounded-lg font-medium text-sm transition flex items-center justify-between">
+                            <span><i class="fas fa-plus-circle mr-2 text-emerald-600"></i> नई डेली सेल एंट्री दर्ज करें</span>
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </a>
+                        <a href="LEN_DEN.html" class="block w-full bg-amber-50 hover:bg-amber-100 text-amber-800 p-3 rounded-lg font-medium text-sm transition flex items-center justify-between">
+                            <span><i class="fas fa-hand-holding-usd mr-2 text-amber-600"></i> नया लेना-देना हिसाब जोड़ें</span>
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </a>
+                        <a href="ORDER.html" class="block w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-800 p-3 rounded-lg font-medium text-sm transition flex items-center justify-between">
+                            <span><i class="fas fa-shopping-cart mr-2 text-indigo-600"></i> डिस्ट्रिब्यूटर ऑर्डर तैयार करें</span>
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </a>
+                    </div>
+                    <div class="mt-4 pt-3 border-t text-xs text-slate-400 text-center">
+                        Medical Store Management System • Cloudflare & Firebase Synced
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Firebase SDKs & Dashboard Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEKFojdvg__D1G1bFxAhW8hOrGF02UCJU",
+            authDomain: "medical-8c32b.firebaseapp.com",
+            databaseURL: "https://medical-8c32b-default-rtdb.firebaseio.com",
+            projectId: "medical-8c32b",
+            storageBucket: "medical-8c32b.firebasestorage.app",
+            messagingSenderId: "110333435801",
+            appId: "1:110333435801:web:5abc3c7c35c8e19d22fd08",
+            measurementId: "G-HRGC036927"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // Authentication Check
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                localStorage.removeItem('isLoggedIn');
+                window.location.href = "index.html";
+            } else {
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                loadDashboardData();
+            }
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            signOut(auth).then(() => {
+                localStorage.removeItem('isLoggedIn');
+                window.location.href = "index.html";
+            });
+        });
+
+        let dashChart = null;
+
+        function loadDashboardData() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const currentMonth = todayStr.slice(0, 7);
+
+            // 1. Fetch Sales Data
+            const salesRef = ref(db, 'daily_sales');
+            onValue(salesRef, (snapshot) => {
+                const data = snapshot.val();
+                let todayTotal = 0;
+                let monthTotal = 0;
+                let chartLabels = [];
+                let chartValues = [];
+
+                if (data) {
+                    const salesArray = Object.values(data).sort((a, b) => new Date(a.date) - new Date(b.date));
+                    salesArray.forEach(item => {
+                        if (item.date === todayStr) todayTotal += item.total;
+                        if (item.date.startsWith(currentMonth)) monthTotal += item.total;
+                    });
+
+                    // Last 7 entries for dashboard graph
+                    const recentSales = salesArray.slice(-7);
+                    chartLabels = recentSales.map(i => {
+                        const [y, m, d] = i.date.split('-');
+                        return `${d}-${m}`;
+                    });
+                    chartValues = recentSales.map(i => i.total);
+                }
+
+                document.getElementById('dashTodaySale').innerText = `₹${todayTotal.toLocaleString('en-IN')}`;
+                document.getElementById('dashMonthSale').innerText = `₹${monthTotal.toLocaleString('en-IN')}`;
+
+                renderDashChart(chartLabels, chartValues);
+            });
+
+            // 2. Fetch Len-Den Data
+            const lenDenRef = ref(db, 'len_den');
+            onValue(lenDenRef, (snapshot) => {
+                const data = snapshot.val();
+                let totalLenaSum = 0;
+                let totalDenaSum = 0;
+
+                if (data) {
+                    Object.values(data).forEach(item => {
+                        const interest = calculateInterest(item.amount, item.interestRate, item.entryDate);
+                        const totalAmount = item.amount + interest;
+                        if (item.entryType === 'lena') {
+                            totalLenaSum += totalAmount;
+                        } else {
+                            totalDenaSum += totalAmount;
+                        }
+                    });
+                }
+
+                document.getElementById('dashTotalLena').innerText = `₹${totalLenaSum.toLocaleString('en-IN')}`;
+                document.getElementById('dashTotalDena').innerText = `₹${totalDenaSum.toLocaleString('en-IN')}`;
+            });
+        }
+
+        function calculateInterest(amount, ratePerMonth, dateStr) {
+            const startDate = new Date(dateStr);
+            const today = new Date();
+            const diffTime = today - startDate;
+            const diffDays = diffTime / (1000 * 60 * 60 * 24);
+            const exactMonths = diffDays / 30.4375;
+            if (exactMonths < 0) return 0;
+            const interest = (amount * ratePerMonth * exactMonths) / 100;
+            return Math.round(interest);
+        }
+
+        function renderDashChart(labels, values) {
+            const ctx = document.getElementById('dashSalesChart').getContext('2d');
+            if (dashChart) dashChart.destroy();
+
+            dashChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels.length ? labels : ['कोई डेटा नहीं'],
+                    datasets: [{
+                        label: 'दैनिक बिक्री (₹)',
+                        data: values.length ? values : [0],
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderColor: 'rgb(5, 150, 105)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
