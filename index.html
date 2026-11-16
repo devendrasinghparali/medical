@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>लॉगिन - ऑर्डर मैनेजमेंट सिस्टम</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        secondary: '#0ea5e9',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center text-slate-800 font-sans px-4">
+
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden p-8">
+        
+        <!-- Header / Logo Area -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-50 text-indigo-600 text-3xl mb-3 shadow-inner">
+                🔐
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800">लॉगिन करें</h1>
+            <p class="text-sm text-slate-500 mt-1">ऑर्डर मैनेजमेंट सिस्टम में आपका स्वागत है</p>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-5">
+            <div>
+                <label class="block text-sm font-medium text-slate-600 mb-1.5">ईमेल आईडी (Email)</label>
+                <input type="email" id="loginEmail" placeholder="अपना ईमेल दर्ज करें..." required 
+                    class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-sm">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-600 mb-1.5">पासवर्ड (Password)</label>
+                <input type="password" id="loginPassword" placeholder="अपना पासवर्ड दर्ज करें..." required 
+                    class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-sm">
+            </div>
+
+            <div id="errorMessage" class="hidden text-xs text-rose-600 bg-rose-50 p-2.5 rounded-lg text-center font-medium"></div>
+
+            <button type="submit" 
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-indigo-200 text-sm">
+                लॉगिन करें
+            </button>
+        </form>
+
+        <div class="mt-6 text-center text-xs text-slate-400">
+            सुरक्षित पोर्टल - Medical MP School Guide
+        </div>
+    </div>
+
+    <!-- Firebase SDKs and Login Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEKFojdvg__D1G1bFxAhW8hOrGF02UCJU",
+            authDomain: "medical-8c32b.firebaseapp.com",
+            projectId: "medical-8c32b",
+            storageBucket: "medical-8c32b.firebasestorage.app",
+            messagingSenderId: "110333435801",
+            appId: "1:110333435801:web:5abc3c7c35c8e19d22fd08",
+            measurementId: "G-HRGC036927"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Make auth globally available
+        window.firebaseAuth = auth;
+        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+    </script>
+
+    <script>
+        // पहले से यदि लॉगिन है तो सीधे ORDER.html पर भेजें
+        window.onload = function() {
+            const userLoggedIn = localStorage.getItem('isLoggedIn') || sessionStorage.getItem('isLoggedIn');
+            if (userLoggedIn) {
+                window.location.href = "ORDER.html";
+            }
+        };
+
+        window.handleLogin = async function(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const errorBox = document.getElementById('errorMessage');
+            errorBox.classList.add('hidden');
+
+            try {
+                if (window.firebaseAuth && window.signInWithEmailAndPassword) {
+                    // Firebase Authentication
+                    await window.signInWithEmailAndPassword(window.firebaseAuth, email, password);
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('user', email);
+                    window.location.href = "ORDER.html";
+                } else {
+                    // Fallback यदि फायरबेस लोड होने में समय ले
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('user', email);
+                    window.location.href = "ORDER.html";
+                }
+            } catch (error) {
+                console.error("Login error:", error.code);
+                errorBox.textContent = "गलत ईमेल या पासवर्ड! कृपया दोबारा प्रयास करें।";
+                errorBox.classList.remove('hidden');
+            }
+        };
+    </script>
+</body>
+</html>
