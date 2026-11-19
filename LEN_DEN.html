@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>लेना-देना हिसाब (Len-Den Ledger)</title>
-    <!-- Tailwind CSS -->
+    <title>लेना-देना हिसाब (Firestore)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         #appContainer { display: none; }
@@ -14,15 +12,12 @@
 </head>
 <body class="bg-slate-100 min-h-screen font-sans text-slate-800">
 
-    <!-- Loading Screen -->
     <div id="loadingScreen" class="flex flex-col items-center justify-center min-h-screen bg-slate-100">
         <i class="fas fa-spinner fa-spin text-4xl text-amber-600 mb-3"></i>
         <p class="text-slate-600 font-medium">लॉगिन जाँच हो रही है...</p>
     </div>
 
-    <!-- Main App Container -->
     <div id="appContainer">
-        <!-- Navbar -->
         <nav class="bg-amber-700 text-white shadow-md sticky top-0 z-50">
             <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
                 <div class="flex items-center space-x-2">
@@ -30,6 +25,9 @@
                     <span class="font-bold text-lg tracking-wide">लेना - देना हिसाब</span>
                 </div>
                 <div class="flex items-center space-x-3">
+                    <a href="index.html" class="bg-amber-800 hover:bg-amber-900 px-3 py-1.5 rounded text-sm font-medium transition">
+                        <i class="fas fa-home mr-1"></i> Dashboard
+                    </a>
                     <a href="ORDER.html" class="bg-amber-800 hover:bg-amber-900 px-3 py-1.5 rounded text-sm font-medium transition">
                         <i class="fas fa-pills mr-1"></i> Orders
                     </a>
@@ -43,10 +41,7 @@
             </div>
         </nav>
 
-        <!-- Main Container -->
         <main class="max-w-6xl mx-auto p-4 space-y-6">
-
-            <!-- Summary Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-rose-500">
                     <p class="text-sm text-slate-500 font-medium">कुल लेना है (हमें किसी से लेना है - Credit Given)</p>
@@ -58,7 +53,6 @@
                 </div>
             </div>
 
-            <!-- Entry Form Section -->
             <div class="bg-white p-6 rounded-xl shadow-sm">
                 <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">
                     <i class="fas fa-plus-circle text-amber-600 mr-2"></i>नया हिसाब जोड़ें
@@ -101,9 +95,7 @@
                 </form>
             </div>
 
-            <!-- Person-wise Summary Table (Lena & Dena Breakdown) -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Lena Summary Table -->
                 <div class="bg-white rounded-xl shadow-sm overflow-hidden border-t-4 border-rose-500">
                     <div class="p-4 border-b bg-rose-50 flex justify-between items-center">
                         <h3 class="font-bold text-rose-800"><i class="fas fa-arrow-down mr-1"></i> लेना है (Lena Ledger)</h3>
@@ -126,7 +118,6 @@
                     </div>
                 </div>
 
-                <!-- Dena Summary Table -->
                 <div class="bg-white rounded-xl shadow-sm overflow-hidden border-t-4 border-emerald-500">
                     <div class="p-4 border-b bg-emerald-50 flex justify-between items-center">
                         <h3 class="font-bold text-emerald-800"><i class="fas fa-arrow-up mr-1"></i> देना है (Dena Ledger)</h3>
@@ -149,21 +140,17 @@
                     </div>
                 </div>
             </div>
-
         </main>
     </div>
 
-    <!-- Firebase SDKs & Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getFirestore, collection, addDoc, doc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Firebase Configuration (From user profile / previous context)
         const firebaseConfig = {
             apiKey: "AIzaSyBEKFojdvg__D1G1bFxAhW8hOrGF02UCJU",
             authDomain: "medical-8c32b.firebaseapp.com",
-            databaseURL: "https://medical-8c32b-default-rtdb.firebaseio.com",
             projectId: "medical-8c32b",
             storageBucket: "medical-8c32b.firebasestorage.app",
             messagingSenderId: "110333435801",
@@ -173,13 +160,12 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getDatabase(app);
+        const db = getFirestore(app);
 
-        // Auth Check
         onAuthStateChanged(auth, (user) => {
             if (!user) {
                 localStorage.removeItem('isLoggedIn');
-                window.location.href = "index.html";
+                window.location.href = "login.html";
             } else {
                 document.getElementById('loadingScreen').style.display = 'none';
                 document.getElementById('appContainer').style.display = 'block';
@@ -187,34 +173,29 @@
             }
         });
 
-        // Logout
         document.getElementById('logoutBtn').addEventListener('click', () => {
             signOut(auth).then(() => {
                 localStorage.removeItem('isLoggedIn');
-                window.location.href = "index.html";
+                window.location.href = "login.html";
             });
         });
 
-        // Set Default Date to Today
         document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
 
-        // Form Submit Handler
         document.getElementById('lenDenForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const amount = Number(document.getElementById('amount').value);
             const interestRate = Number(document.getElementById('interestRate').value);
             const personName = document.getElementById('personName').value.trim();
             const entryDate = document.getElementById('entryDate').value;
-            const entryType = document.getElementById('entryType').value; // 'lena' or 'dena'
+            const entryType = document.getElementById('entryType').value;
 
             const saveBtn = document.getElementById('saveBtn');
             saveBtn.disabled = true;
             saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> सेव हो रहा है...';
 
             try {
-                const newRef = push(ref(db, 'len_den'));
-                await set(newRef, {
-                    id: newRef.key,
+                await addDoc(collection(db, 'len_den'), {
                     amount: amount,
                     interestRate: interestRate,
                     personName: personName,
@@ -227,7 +208,7 @@
                 document.getElementById('interestRate').value = '';
                 document.getElementById('personName').value = '';
                 document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
-                alert("हिसाब सफलताપूर्वक सेव हो गया!");
+                alert("हिसाब सफलतापूर्वक सेव हो गया!");
             } catch (error) {
                 alert("त्रुटि: " + error.message);
             } finally {
@@ -236,35 +217,20 @@
             }
         });
 
-        // Calculate Interest based on months elapsed
         function calculateInterest(amount, ratePerMonth, dateStr) {
             const startDate = new Date(dateStr);
             const today = new Date();
-            
-            // Calculate exact difference in months and days
-            let months = (today.getFullYear() - startDate.getFullYear()) * 12 + (today.getMonth() - startDate.getMonth());
-            let dayDiff = today.getDate() - startDate.getDate();
-            if (dayDiff < 0) {
-                months--;
-                // approximate days contribution or simple proportional month fraction
-            }
-            // Better precision: exact fractional months
             const diffTime = today - startDate;
             const diffDays = diffTime / (1000 * 60 * 60 * 24);
-            const exactMonths = diffDays / 30.4375; // average days in a month
-
+            const exactMonths = diffDays / 30.4375;
             if (exactMonths < 0) return 0;
-
-            // Simple Interest formula: (Principal * Rate * Months) / 100
             const interest = (amount * ratePerMonth * exactMonths) / 100;
             return Math.round(interest);
         }
 
-        // Load Data from Firebase
         function loadLedgerData() {
-            const ledgerRef = ref(db, 'len_den');
-            onValue(ledgerRef, (snapshot) => {
-                const data = snapshot.val();
+            const ledgerCol = collection(db, 'len_den');
+            onSnapshot(ledgerCol, (snapshot) => {
                 const lenaTbody = document.getElementById('lenaTableBody');
                 const denaTbody = document.getElementById('denaTableBody');
                 lenaTbody.innerHTML = '';
@@ -273,7 +239,7 @@
                 let totalLenaSum = 0;
                 let totalDenaSum = 0;
 
-                if (!data) {
+                if (snapshot.empty) {
                     lenaTbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-slate-400">कोई रिकॉर्ड नहीं है।</td></tr>';
                     denaTbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-slate-400">कोई रिकॉर्ड नहीं है।</td></tr>';
                     document.getElementById('totalLena').innerText = '₹0';
@@ -284,10 +250,11 @@
                 let lenaList = [];
                 let denaList = [];
 
-                Object.values(data).forEach(item => {
+                snapshot.forEach(docSnap => {
+                    const item = docSnap.data();
+                    item.id = docSnap.id;
                     const interest = calculateInterest(item.amount, item.interestRate, item.entryDate);
                     const totalAmount = item.amount + interest;
-                    
                     const enrichedItem = { ...item, interest, totalAmount };
 
                     if (item.entryType === 'lena') {
@@ -299,7 +266,6 @@
                     }
                 });
 
-                // Render Lena Table
                 if (lenaList.length === 0) {
                     lenaTbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-slate-400">लेने का कोई हिसाब नहीं है।</td></tr>';
                 } else {
@@ -324,7 +290,6 @@
                     });
                 }
 
-                // Render Dena Table
                 if (denaList.length === 0) {
                     denaTbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-slate-400">देने का कोई हिसाब नहीं है।</td></tr>';
                 } else {
@@ -349,16 +314,14 @@
                     });
                 }
 
-                // Update Total Top Summary
                 document.getElementById('totalLena').innerText = `₹${totalLenaSum.toLocaleString('en-IN')}`;
                 document.getElementById('totalDena').innerText = `₹${totalDenaSum.toLocaleString('en-IN')}`;
             });
         }
 
-        // Delete Entry
-        window.deleteEntry = function(id) {
+        window.deleteEntry = async function(id) {
             if (confirm("क्या आप इस हिसाब को हटाना चाहते हैं?")) {
-                remove(ref(db, 'len_den/' + id));
+                await deleteDoc(doc(db, 'len_den', id));
             }
         };
 
