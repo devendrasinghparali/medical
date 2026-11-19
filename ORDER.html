@@ -18,128 +18,149 @@
             }
         }
     </script>
+    <style>
+        #appContainer { display: none; }
+    </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
 
-    <!-- Header -->
-    <header class="bg-indigo-600 text-white shadow-md">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-xl font-bold">📦 ORDER - मैनेजमेंट सिस्टम</h1>
-            <div class="space-x-2 flex items-center">
-                <button onclick="switchTab('orderForm')" id="btnOrderForm" class="px-3 py-1.5 rounded-lg bg-indigo-700 font-medium text-sm transition shadow-sm">नया ऑर्डर</button>
-                <button onclick="switchTab('orderList')" id="btnOrderList" class="px-3 py-1.5 rounded-lg hover:bg-indigo-700 font-medium text-sm transition">ऑर्डर लिस्ट</button>
-                <button onclick="logout()" class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 font-medium text-sm transition ml-2">लॉग आउट</button>
-            </div>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="flex flex-col items-center justify-center min-h-screen bg-slate-50">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-3"></div>
+            <p class="text-slate-600 font-medium text-sm">लॉगिन जाँच हो रही है...</p>
         </div>
-    </header>
+    </div>
 
-    <main class="max-w-4xl mx-auto px-4 py-6">
-
-        <!-- TAB 1: New Order Form & Item Management -->
-        <section id="tabOrderForm" class="space-y-6">
-            <!-- Add New Item Card -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                <h2 class="text-lg font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                    <span>➕</span> नया आइटम जोड़ें
-                </h2>
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <input type="text" id="newItemName" placeholder="आइटम का नाम दर्ज करें (जैसे: Paracetamol)" class="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <button onclick="addNewItem()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-5 py-2 rounded-lg transition shadow-sm flex items-center justify-center gap-1">
-                        जोड़ें और सेव करें
-                    </button>
-                </div>
-                <p class="text-xs text-slate-500 mt-2">नोट: एक बार जोड़ा गया आइटम हमेशा के लिए सलेक्ट करने के लिए उपलब्ध हो जाएगा।</p>
-            </div>
-
-            <!-- Create Order Form -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                <h2 class="text-lg font-semibold text-slate-700 mb-4 flex items-center gap-2">
-                    <span>📝</span> ऑर्डर फॉर्म
-                </h2>
-                
-                <form id="orderFormElement" onsubmit="saveOrder(event)" class="space-y-4">
-                    <!-- Select Item with Search/Filter capability -->
-                    <div class="relative">
-                        <label class="block text-sm font-medium text-slate-600 mb-1">आइटम चुनें या खोजें (Search Item)</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="itemSearchInput" placeholder="आइटम का नाम टाइप करके खोजें..." oninput="filterItems()" onfocus="showDropdownList()" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" autocomplete="off">
-                            <input type="hidden" id="selectedItemValue" required>
-                            <button type="button" onclick="toggleDropdownList()" class="bg-slate-200 hover:bg-slate-300 px-3 py-2 rounded-lg text-slate-700 transition">▼</button>
-                        </div>
-                        
-                        <!-- Dropdown suggestions list box -->
-                        <div id="itemDropdownList" class="hidden absolute z-10 w-full mt-1 bg-white border border-slate-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                            <!-- Populated dynamically -->
-                        </div>
-                    </div>
-
-                    <!-- Quantity -->
-                    <div>
-                        <label class="block text-sm font-medium text-slate-600 mb-1">मात्रा (Quantity)</label>
-                        <input type="number" id="itemQuantity" min="1" value="1" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-
-                    <!-- Distributor -->
-                    <div>
-                        <label class="block text-sm font-medium text-slate-600 mb-1">डिस्ट्रीब्यूटर चुनें</label>
-                        <select id="distributorSelect" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-                            <option value="">-- डिस्ट्रीब्यूटर सलेक्ट करें --</option>
-                            <option value="TARA">TARA</option>
-                            <option value="MEDICO">MEDICO</option>
-                            <option value="BADADA">NEHA</option>
-                            <option value="BADADA">BADADA</option>
-                            <option value="BADADA">HARSH</option>
-                            <option value="BADADA">modern</option>
-                            <option value="BADADA">SHREE JI</option>
-                            <option value="BADADA">BAFNA</option>
-                            <option value="BADADA">RAJESH</option>
-                            <option value="BADADA">BASWA</option>
-                            <option value="BADADA">KANCHAN</option>
-                            <option value="BADADA">PS</option>
-                            <option value="BADADA">GANERAL</option>
-                            <option value="BADADA">LADDU</option>
-                            <option value="BADADA">OTHER</option>
-                            
-                            
-                        </select>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition shadow-md">
-                        ऑर्डर सेव करें
-                    </button>
-                </form>
-            </div>
-        </section>
-
-        <!-- TAB 2: Order List (Distributor Wise) -->
-        <section id="tabOrderList" class="hidden space-y-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                <h2 class="text-lg font-semibold text-slate-700 flex items-center gap-2">
-                    <span>📋</span> डिस्ट्रीब्यूटर वाइज ऑर्डर लिस्ट
-                </h2>
-                <div class="flex gap-2 w-full sm:w-auto">
-                    <button onclick="removeAllOrders()" class="bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition shadow-sm flex-1 sm:flex-none">
-                        सभी रिमूव करें
-                    </button>
+    <div id="appContainer">
+        <!-- Header -->
+        <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-40">
+            <div class="max-w-4xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-2">
+                <h1 class="text-xl font-bold">📦 ORDER - मैनेजमेंट सिस्टम</h1>
+                <div class="space-x-2 flex items-center flex-wrap gap-y-1">
+                    <a href="index.html" class="px-3 py-1.5 rounded-lg bg-indigo-800 hover:bg-indigo-900 font-medium text-sm transition">डैशबोर्ड</a>
+                    <button onclick="switchTab('orderForm')" id="btnOrderForm" class="px-3 py-1.5 rounded-lg bg-indigo-700 font-medium text-sm transition shadow-sm">नया ऑर्डर</button>
+                    <button onclick="switchTab('orderList')" id="btnOrderList" class="px-3 py-1.5 rounded-lg hover:bg-indigo-700 font-medium text-sm transition">ऑर्डर लिस्ट</button>
+                    <button onclick="logout()" class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 font-medium text-sm transition">लॉग आउट</button>
                 </div>
             </div>
+        </header>
 
-            <!-- Container for Distributor Groups -->
-            <div id="distributorContainers" class="space-y-6">
-                <!-- Dynamically populated list -->
-            </div>
-        </section>
+        <main class="max-w-4xl mx-auto px-4 py-6">
 
-    </main>
+            <!-- TAB 1: New Order Form & Item Management -->
+            <section id="tabOrderForm" class="space-y-6">
+                <!-- Add New Item Card -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                        <span>➕</span> नया आइटम जोड़ें
+                    </h2>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input type="text" id="newItemName" placeholder="आइटम का नाम दर्ज करें (जैसे: Paracetamol)" class="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button type="button" onclick="addNewItem()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-5 py-2 rounded-lg transition shadow-sm flex items-center justify-center gap-1">
+                            जोड़ें और सेव करें
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">नोट: एक बार जोड़ा गया आइटम हमेशा के लिए सलेक्ट करने के लिए उपलब्ध हो जाएगा।</p>
+                </div>
 
-    <!-- Firebase SDKs and App Initialization -->
+                <!-- Create Order Form -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-semibold text-slate-700 mb-4 flex items-center gap-2">
+                        <span>📝</span> ऑर्डर फॉर्म
+                    </h2>
+                    
+                    <form id="orderFormElement" onsubmit="saveOrder(event)" class="space-y-4">
+                        <!-- Select Item with Search/Filter capability -->
+                        <div class="relative">
+                            <label class="block text-sm font-medium text-slate-600 mb-1">आइटम चुनें या खोजें (Search Item)</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="itemSearchInput" placeholder="आइटम का नाम टाइप करके खोजें..." oninput="filterItems()" onfocus="showDropdownList()" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" autocomplete="off">
+                                <input type="hidden" id="selectedItemValue" required>
+                                <button type="button" onclick="toggleDropdownList()" class="bg-slate-200 hover:bg-slate-300 px-3 py-2 rounded-lg text-slate-700 transition">▼</button>
+                            </div>
+                            
+                            <!-- Dropdown suggestions list box -->
+                            <div id="itemDropdownList" class="hidden absolute z-10 w-full mt-1 bg-white border border-slate-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Quantity -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1">मात्रा (Quantity)</label>
+                            <input type="number" id="itemQuantity" min="1" value="1" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+
+                        <!-- Distributor -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1">डिस्ट्रीब्यूटर चुनें</label>
+                            <select id="distributorSelect" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                                <option value="">-- डिस्ट्रीब्यूटर सलेक्ट करें --</option>
+                                <option value="TARA">TARA</option>
+                                <option value="MEDICO">MEDICO</option>
+                                <option value="NEHA">NEHA</option>
+                                <option value="BADADA">BADADA</option>
+                                <option value="HARSH">HARSH</option>
+                                <option value="modern">modern</option>
+                                <option value="SHREE JI">SHREE JI</option>
+                                <option value="BAFNA">BAFNA</option>
+                                <option value="RAJESH">RAJESH</option>
+                                <option value="BASWA">BASWA</option>
+                                <option value="KANCHAN">KANCHAN</option>
+                                <option value="PS">PS</option>
+                                <option value="GANERAL">GANERAL</option>
+                                <option value="LADDU">LADDU</option>
+                                <option value="OTHER">OTHER</option>
+                            </select>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" id="saveOrderBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition shadow-md">
+                            ऑर्डर सेव करें
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB 2: Order List (Distributor Wise) -->
+            <section id="tabOrderList" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-semibold text-slate-700 flex items-center gap-2">
+                        <span>📋</span> डिस्ट्रीब्यूटर वाइज ऑर्डर लिस्ट
+                    </h2>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button type="button" onclick="removeAllOrders()" class="bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition shadow-sm flex-1 sm:flex-none">
+                            सभी रिमूव करें
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Container for Distributor Groups -->
+                <div id="distributorContainers" class="space-y-6">
+                    <!-- Dynamically populated list -->
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Firebase SDKs (Auth + Cloud Firestore) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
-        import { getDatabase, ref, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import {
+            getFirestore,
+            collection,
+            doc,
+            addDoc,
+            setDoc,
+            getDocs,
+            deleteDoc,
+            onSnapshot
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Firebase Configuration provided by user
         const firebaseConfig = {
             apiKey: "AIzaSyBEKFojdvg__D1G1bFxAhW8hOrGF02UCJU",
             authDomain: "medical-8c32b.firebaseapp.com",
@@ -150,88 +171,112 @@
             measurementId: "G-HRGC036927"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const db = getDatabase(app);
+        try { getAnalytics(app); } catch (e) {}
 
-        // Make db available globally for functions below
-        window.firebaseDb = db;
-        window.firebaseRef = ref;
-        window.firebasePush = push;
-        window.firebaseRemove = remove;
-        window.firebaseOnValue = onValue;
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.firebaseAuth = auth;
+        window.firebaseSignOut = signOut;
+        window.firestoreDb = db;
+        window.fsCollection = collection;
+        window.fsDoc = doc;
+        window.fsAddDoc = addDoc;
+        window.fsSetDoc = setDoc;
+        window.fsGetDocs = getDocs;
+        window.fsDeleteDoc = deleteDoc;
+        window.fsOnSnapshot = onSnapshot;
+
+        let ordersUnsubscribe = null;
+        let itemsUnsubscribe = null;
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('user');
+                sessionStorage.clear();
+                window.location.href = "login.html";
+            } else {
+                localStorage.setItem('isLoggedIn', 'true');
+                if (user.email) localStorage.setItem('user', user.email);
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                startFirestoreListeners();
+            }
+        });
+
+        function startFirestoreListeners() {
+            if (itemsUnsubscribe) itemsUnsubscribe();
+            if (ordersUnsubscribe) ordersUnsubscribe();
+
+            // Listen to custom items in Firestore ('order_items')
+            itemsUnsubscribe = onSnapshot(collection(db, 'order_items'), (snapshot) => {
+                const defaultItems = ["Paracetamol", "Cough Syrup", "Vitamin C", "Bandage Roll"];
+                const loaded = [];
+                snapshot.forEach((docSnap) => {
+                    const d = docSnap.data();
+                    if (d && d.name) loaded.push(d.name);
+                });
+                const merged = Array.from(new Set([...defaultItems, ...loaded]));
+                window.updateAppItems(merged);
+            }, (err) => {
+                console.error("Items listener error:", err);
+            });
+
+            // Listen to orders in Firestore ('orders')
+            ordersUnsubscribe = onSnapshot(collection(db, 'orders'), (snapshot) => {
+                const list = [];
+                snapshot.forEach((docSnap) => {
+                    list.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                window.updateAppOrders(list);
+            }, (err) => {
+                console.error("Orders listener error:", err);
+            });
+        }
     </script>
 
     <!-- Application Logic -->
     <script>
-        // --- लॉगिन चेक (Login Check) ---
-        // यदि लोकल स्टोरेज या सेशन में लॉगिन टोकन/यूजर नहीं है, तो medical.mpschoolguide.in पर रीडायरेक्ट करें
-        function checkLoginStatus() {
-            const userLoggedIn = localStorage.getItem('isLoggedIn') || sessionStorage.getItem('isLoggedIn') || localStorage.getItem('user');
-            // टेस्टिंग या बाईपास के लिए यदि आप चाहें तो इसे हटा सकते हैं, अभी यह सुरक्षित रूप से जांच कर रहा है:
-            if (!userLoggedIn) {
-                // चेक करें कि क्या यूआरएल में लोकल होस्ट या टेस्ट एनवायरनमेंट है, अन्यथा रिडायरेक्ट करें
-                if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-                    window.location.href = "https://medical.mpschoolguide.in";
-                } else {
-                    // लोकल टेस्ट के लिए यदि लॉगिन सेट नहीं है तो एक वैकल्पिक सूचना या ऑटो सेट कर सकते हैं
-                    console.log("Localhost detected. Login check bypassed for testing.");
-                }
-            }
-        }
-        
-        // पेज लोड होते ही लॉगिन चेक करें
-        checkLoginStatus();
-
-        // Logout function
         window.logout = function() {
             localStorage.removeItem('isLoggedIn');
             localStorage.removeItem('user');
             sessionStorage.clear();
-            window.location.href = "https://medical.mpschoolguide.in";
-        }
+            if (window.firebaseAuth && window.firebaseSignOut) {
+                window.firebaseSignOut(window.firebaseAuth)
+                    .then(() => { window.location.href = "login.html"; })
+                    .catch(() => { window.location.href = "login.html"; });
+            } else {
+                window.location.href = "login.html";
+            }
+        };
 
-        // Initial Items & Orders Data
-        let items = JSON.parse(localStorage.getItem('app_items')) || [
-            "Paracetamol", "Cough Syrup", "Vitamin C", "Bandage Roll"
-        ];
+        let items = ["Paracetamol", "Cough Syrup", "Vitamin C", "Bandage Roll"];
         let orders = [];
 
-        window.onload = function() {
+        window.updateAppItems = function(newItems) {
+            items = newItems;
             renderItemListDropdown(items);
-            
-            // Real-time listener for Firebase DB if initialized
-            setTimeout(() => {
-                if (window.firebaseDb && window.firebaseRef && window.firebaseOnValue) {
-                    const ordersRef = window.firebaseRef(window.firebaseDb, 'orders');
-                    window.firebaseOnValue(ordersRef, (snapshot) => {
-                        const data = snapshot.val();
-                        orders = [];
-                        if (data) {
-                            Object.keys(data).forEach(key => {
-                                orders.push({ id: key, ...data[key] });
-                            });
-                        }
-                        renderOrderLists();
-                    });
-                } else {
-                    // Fallback to localStorage if Firebase not fully loaded
-                    orders = JSON.parse(localStorage.getItem('app_orders')) || [];
-                    renderOrderLists();
-                }
-            }, 500);
+        };
 
-            // Click outside to close dropdown
+        window.updateAppOrders = function(newOrders) {
+            orders = newOrders;
+            renderOrderLists();
+        };
+
+        window.addEventListener('DOMContentLoaded', function() {
+            renderItemListDropdown(items);
+            renderOrderLists();
+
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('#itemSearchInput') && !e.target.closest('#itemDropdownList') && !e.target.closest('button[onclick="toggleDropdownList()"]')) {
                     const dropdown = document.getElementById('itemDropdownList');
-                    if(dropdown) dropdown.classList.add('hidden');
+                    if (dropdown) dropdown.classList.add('hidden');
                 }
             });
-        };
+        });
 
-        // Tab Switching Function
         window.switchTab = function(tabName) {
             const tabOrderForm = document.getElementById('tabOrderForm');
             const tabOrderList = document.getElementById('tabOrderList');
@@ -250,12 +295,11 @@
                 btnOrderForm.classList.remove('bg-indigo-700');
                 renderOrderLists();
             }
-        }
+        };
 
-        // Render Item Dropdown List for Search
         function renderItemListDropdown(filteredItems) {
             const dropdown = document.getElementById('itemDropdownList');
-            if(!dropdown) return;
+            if (!dropdown) return;
             dropdown.innerHTML = '';
 
             if (filteredItems.length === 0) {
@@ -263,7 +307,7 @@
                 return;
             }
 
-            filteredItems.sort().forEach(item => {
+            filteredItems.slice().sort().forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'px-4 py-2 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer transition';
                 div.textContent = item;
@@ -277,7 +321,7 @@
         window.showDropdownList = function() {
             document.getElementById('itemDropdownList').classList.remove('hidden');
             filterItems();
-        }
+        };
 
         window.toggleDropdownList = function() {
             const dropdown = document.getElementById('itemDropdownList');
@@ -286,14 +330,14 @@
             } else {
                 dropdown.classList.add('hidden');
             }
-        }
+        };
 
         window.filterItems = function() {
             const query = document.getElementById('itemSearchInput').value.toLowerCase();
             const filtered = items.filter(item => item.toLowerCase().includes(query));
             renderItemListDropdown(filtered);
             document.getElementById('itemDropdownList').classList.remove('hidden');
-        }
+        };
 
         function selectItem(itemName) {
             document.getElementById('itemSearchInput').value = itemName;
@@ -301,8 +345,7 @@
             document.getElementById('itemDropdownList').classList.add('hidden');
         }
 
-        // Add New Item Function
-        window.addNewItem = function() {
+        window.addNewItem = async function() {
             const input = document.getElementById('newItemName');
             const itemName = input.value.trim();
 
@@ -311,83 +354,83 @@
                 return;
             }
 
-            if (items.includes(itemName)) {
+            if (items.some(i => i.toLowerCase() === itemName.toLowerCase())) {
                 alert('यह आइटम पहले से सूची में मौजूद है!');
                 return;
             }
 
-            items.push(itemName);
-            localStorage.setItem('app_items', JSON.stringify(items));
-            renderItemListDropdown(items);
-            selectItem(itemName);
-            
-            input.value = '';
-            alert('आइटम सफलतापूर्वक जोड़ दिया गया है और चयन सूची में उपलब्ध है!');
-        }
+            try {
+                const docId = encodeURIComponent(itemName.toLowerCase());
+                await window.fsSetDoc(window.fsDoc(window.firestoreDb, 'order_items', docId), {
+                    name: itemName,
+                    createdAt: Date.now()
+                });
+                selectItem(itemName);
+                input.value = '';
+                alert('आइटम Firestore में सफलतापूर्वक जोड़ दिया गया है!');
+            } catch (error) {
+                console.error("Error adding item to Firestore:", error);
+                alert("आइटम सेव करने में त्रुटि आई: " + error.message);
+            }
+        };
 
-        // Save Order Function with Firebase Integration
-        window.saveOrder = function(event) {
+        window.saveOrder = async function(event) {
             event.preventDefault();
 
             const itemName = document.getElementById('selectedItemValue').value || document.getElementById('itemSearchInput').value.trim();
-            const quantity = document.getElementById('itemQuantity').value;
+            const quantity = Number(document.getElementById('itemQuantity').value);
             const distributor = document.getElementById('distributorSelect').value;
+            const saveBtn = document.getElementById('saveOrderBtn');
 
             if (!itemName || !quantity || !distributor) {
                 alert('कृपया आइटम, मात्रा और डिस्ट्रीब्यूटर सही से भरें!');
                 return;
             }
 
-            if (!items.includes(itemName)) {
-                items.push(itemName);
-                localStorage.setItem('app_items', JSON.stringify(items));
-            }
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'सेव हो रहा है...';
 
-            const newOrder = {
-                item: itemName,
-                quantity: quantity,
-                distributor: distributor,
-                date: new Date().toLocaleDateString('hi-IN')
-            };
-
-            // Save to Firebase Realtime Database if connected, else fallback to localStorage
-            if (window.firebaseDb && window.firebaseRef && window.firebasePush) {
-                const ordersRef = window.firebaseRef(window.firebaseDb, 'orders');
-                window.firebasePush(ordersRef, newOrder)
-                    .then(() => {
-                        console.log("Order saved to Firebase successfully!");
-                    })
-                    .catch((error) => {
-                        console.error("Firebase save error:", error);
-                        saveToLocalStorageFallback(newOrder);
+            try {
+                if (!items.some(i => i.toLowerCase() === itemName.toLowerCase())) {
+                    const docId = encodeURIComponent(itemName.toLowerCase());
+                    await window.fsSetDoc(window.fsDoc(window.firestoreDb, 'order_items', docId), {
+                        name: itemName,
+                        createdAt: Date.now()
                     });
-            } else {
-                saveToLocalStorageFallback(newOrder);
+                }
+
+                await window.fsAddDoc(window.fsCollection(window.firestoreDb, 'orders'), {
+                    item: itemName,
+                    quantity: quantity,
+                    distributor: distributor,
+                    date: new Date().toLocaleDateString('hi-IN'),
+                    timestamp: Date.now()
+                });
+
+                document.getElementById('orderFormElement').reset();
+                document.getElementById('selectedItemValue').value = "";
+                document.getElementById('itemQuantity').value = "1";
+                renderItemListDropdown(items);
+                window.switchTab('orderList');
+            } catch (error) {
+                console.error("Error saving order to Firestore:", error);
+                alert("ऑर्डर सेव करने में त्रुटि आई: " + error.message);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'ऑर्डर सेव करें';
             }
+        };
 
-            // Reset Form & Redirect to Order List view
-            document.getElementById('orderFormElement').reset();
-            document.getElementById('selectedItemValue').value = "";
-            document.getElementById('itemQuantity').value = "1";
-            renderItemListDropdown(items);
-            
-            window.switchTab('orderList');
-        }
-
-        function saveToLocalStorageFallback(newOrder) {
-            newOrder.id = Date.now().toString();
-            orders.push(newOrder);
-            localStorage.setItem('app_orders', JSON.stringify(orders));
-            renderOrderLists();
-        }
-
-        // Render Distributor Wise Order Lists
         function renderOrderLists() {
             const container = document.getElementById('distributorContainers');
-            if(!container) return;
+            if (!container) return;
             container.innerHTML = '';
 
-            const distributors = ["TARA", "MEDICO", "BADADA"];
+            const distributors = [
+                "TARA", "MEDICO", "NEHA", "BADADA", "HARSH",
+                "modern", "SHREE JI", "BAFNA", "RAJESH", "BASWA",
+                "KANCHAN", "PS", "GANERAL", "LADDU", "OTHER"
+            ];
 
             distributors.forEach(dist => {
                 const distOrders = orders.filter(o => o.distributor === dist);
@@ -423,12 +466,12 @@
                     `;
 
                     distOrders.forEach(order => {
-                        cardHtml += `
+                        cardHTML += `
                             <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
                                 <td class="py-2.5 px-3 font-medium text-slate-700">${order.item}</td>
                                 <td class="py-2.5 px-3 text-slate-600">${order.quantity}</td>
                                 <td class="py-2.5 px-3 text-right">
-                                    <button onclick="removeOrder('${order.id}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold px-2.5 py-1 rounded border border-rose-200 hover:bg-rose-50 transition">
+                                    <button type="button" onclick="removeOrder('${order.id}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold px-2.5 py-1 rounded border border-rose-200 hover:bg-rose-50 transition">
                                         रिमूव करें
                                     </button>
                                 </td>
@@ -436,7 +479,7 @@
                         `;
                     });
 
-                    cardHtml += `
+                    cardHTML += `
                                 </tbody>
                             </table>
                         </div>
@@ -452,35 +495,32 @@
             });
         }
 
-        // Remove Single Order
-        window.removeOrder = function(orderId) {
+        window.removeOrder = async function(orderId) {
             if (confirm('क्या आप इस आइटम को ऑर्डर लिस्ट से हटाना चाहते हैं?')) {
-                if (window.firebaseDb && window.firebaseRef && window.firebaseRemove) {
-                    const orderRef = window.firebaseRef(window.firebaseDb, 'orders/' + orderId);
-                    window.firebaseRemove(orderRef).catch(err => {
-                        console.error("Firebase remove error:", err);
-                    });
+                try {
+                    await window.fsDeleteDoc(window.fsDoc(window.firestoreDb, 'orders', orderId));
+                } catch (error) {
+                    console.error("Error removing order:", error);
+                    alert("हटाने में त्रुटि आई: " + error.message);
                 }
-                orders = orders.filter(o => o.id !== orderId);
-                localStorage.setItem('app_orders', JSON.stringify(orders));
-                renderOrderLists();
             }
-        }
+        };
 
-        // Remove All Orders
-        window.removeAllOrders = function() {
+        window.removeAllOrders = async function() {
             if (confirm('क्या आप सभी डिस्ट्रीब्यूटर के सभी ऑर्डर रिमूव करना चाहते हैं?')) {
-                if (window.firebaseDb && window.firebaseRef && window.firebaseRemove) {
-                    const ordersRef = window.firebaseRef(window.firebaseDb, 'orders');
-                    window.firebaseRemove(ordersRef).catch(err => {
-                        console.error("Firebase remove all error:", err);
+                try {
+                    const snap = await window.fsGetDocs(window.fsCollection(window.firestoreDb, 'orders'));
+                    const deletions = [];
+                    snap.forEach((docSnap) => {
+                        deletions.push(window.fsDeleteDoc(window.fsDoc(window.firestoreDb, 'orders', docSnap.id)));
                     });
+                    await Promise.all(deletions);
+                } catch (error) {
+                    console.error("Error removing all orders:", error);
+                    alert("सभी ऑर्डर हटाने में त्रुटि आई: " + error.message);
                 }
-                orders = [];
-                localStorage.setItem('app_orders', JSON.stringify(orders));
-                renderOrderLists();
             }
-        }
+        };
     </script>
 </body>
 </html>
