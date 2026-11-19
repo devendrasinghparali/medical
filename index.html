@@ -3,68 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>लॉगिन - ऑर्डर मैनेजमेंट सिस्टम</title>
-    <!-- Tailwind CSS CDN -->
+    <title>मेडिकल स्टोर डैशबोर्ड (Firestore)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#4f46e5',
-                        secondary: '#0ea5e9',
-                    }
-                }
-            }
-        }
-    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #appContainer { display: none; }
+    </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex items-center justify-center text-slate-800 font-sans px-4">
+<body class="bg-slate-100 min-h-screen font-sans text-slate-800">
 
-    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden p-8">
-        
-        <!-- Header / Logo Area -->
-        <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-50 text-indigo-600 text-3xl mb-3 shadow-inner">
-                🔐
-            </div>
-            <h1 class="text-2xl font-bold text-slate-800">लॉगिन करें</h1>
-            <p class="text-sm text-slate-500 mt-1">ऑर्डर मैनेजमेंट सिस्टम में आपका स्वागत है</p>
-        </div>
-
-        <!-- Login Form -->
-        <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-5">
-            <div>
-                <label class="block text-sm font-medium text-slate-600 mb-1.5">ईमेल आईडी (Email)</label>
-                <input type="email" id="loginEmail" placeholder="अपना ईमेल दर्ज करें..." required 
-                    class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-sm">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-slate-600 mb-1.5">पासवर्ड (Password)</label>
-                <input type="password" id="loginPassword" placeholder="अपना पासवर्ड दर्ज करें..." required 
-                    class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-sm">
-            </div>
-
-            <div id="errorMessage" class="hidden text-xs text-rose-600 bg-rose-50 p-2.5 rounded-lg text-center font-medium"></div>
-
-            <button type="submit" 
-                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-indigo-200 text-sm">
-                लॉगिन करें
-            </button>
-        </form>
-
-        <div class="mt-6 text-center text-xs text-slate-400">
-            सुरक्षित पोर्टल - Medical MP School Guide
-        </div>
+    <div id="loadingScreen" class="flex flex-col items-center justify-center min-h-screen bg-slate-100">
+        <i class="fas fa-spinner fa-spin text-4xl text-emerald-600 mb-3"></i>
+        <p class="text-slate-600 font-medium">डैशबोर्ड लोड हो रहा है...</p>
     </div>
 
-    <!-- Firebase SDKs and Login Logic -->
+    <div id="appContainer">
+        <nav class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-hospital-symbol text-emerald-400 text-2xl"></i>
+                    <span class="font-bold text-lg tracking-wide">मेडिकल स्टोर डैशबोर्ड</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded text-sm font-medium transition" title="लॉग आउट">
+                        <i class="fas fa-sign-out-alt mr-1"></i> लॉग आउट
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="max-w-7xl mx-auto p-4 space-y-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <a href="ORDER.html" class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-indigo-500 hover:shadow-md transition flex items-center justify-between group">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">ऑर्डर मॉड्यूल</p>
+                        <h3 class="text-lg font-bold text-slate-800 mt-0.5 group-hover:text-indigo-600 transition">ऑर्डर मैनेजमेंट</h3>
+                        <p class="text-xs text-slate-500 mt-1">डिस्ट्रिब्यूटर वाइज ऑर्डर और सर्च</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
+                        <i class="fas fa-pills"></i>
+                    </div>
+                </a>
+
+                <a href="SALES.html" class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-emerald-500 hover:shadow-md transition flex items-center justify-between group">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">वित्तीय मॉड्यूल</p>
+                        <h3 class="text-lg font-bold text-slate-800 mt-0.5 group-hover:text-emerald-600 transition">डेली सेल्स (Sales)</h3>
+                        <p class="text-xs text-slate-500 mt-1">रोजाना कैश और ऑनलाइन बिक्री</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </a>
+
+                <a href="LEN_DEN.html" class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-amber-500 hover:shadow-md transition flex items-center justify-between group">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">खाता बही</p>
+                        <h3 class="text-lg font-bold text-slate-800 mt-0.5 group-hover:text-amber-600 transition">लेना - देना हिसाब</h3>
+                        <p class="text-xs text-slate-500 mt-1">ब्याज आधारित लेन-देन का रिकॉर्ड</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                </a>
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">सिक्योरिटी</p>
+                        <h3 class="text-lg font-bold text-slate-800 mt-0.5">Firestore Synced</h3>
+                        <p class="text-xs text-slate-500 mt-1">सुरक्षित लॉगिन संरक्षित</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-xl shadow-sm border-t-2 border-emerald-500">
+                    <p class="text-xs text-slate-500 font-medium">आज की कुल बिक्री (Today Sales)</p>
+                    <h2 id="dashTodaySale" class="text-xl font-bold text-emerald-700 mt-1">₹0</h2>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border-t-2 border-blue-500">
+                    <p class="text-xs text-slate-500 font-medium">इस महीने की बिक्री (Month Sales)</p>
+                    <h2 id="dashMonthSale" class="text-xl font-bold text-blue-700 mt-1">₹0</h2>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border-t-2 border-rose-500">
+                    <p class="text-xs text-slate-500 font-medium">कुल लेना है (Total Lena)</p>
+                    <h2 id="dashTotalLena" class="text-xl font-bold text-rose-600 mt-1">₹0</h2>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border-t-2 border-amber-500">
+                    <p class="text-xs text-slate-500 font-medium">कुल देना है (Total Dena)</p>
+                    <h2 id="dashTotalDena" class="text-xl font-bold text-amber-600 mt-1">₹0</h2>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm flex flex-col justify-between">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h3 class="text-base font-bold text-slate-800">
+                            <i class="fas fa-chart-bar text-emerald-600 mr-2"></i>बिक्री का संक्षिप्त ग्राफ (Sales Trend)
+                        </h3>
+                        <a href="SALES.html" class="text-xs text-emerald-600 font-semibold hover:underline">सभी देखें &rarr;</a>
+                    </div>
+                    <div class="relative w-full h-64">
+                        <canvas id="dashSalesChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm flex flex-col justify-between">
+                    <div class="border-b pb-2 mb-4">
+                        <h3 class="text-base font-bold text-slate-800">
+                            <i class="fas fa-bolt text-indigo-600 mr-2"></i>त्वरित शॉर्टकट (Quick Actions)
+                        </h3>
+                    </div>
+                    <div class="space-y-3">
+                        <a href="SALES.html" class="block w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 p-3 rounded-lg font-medium text-sm transition flex items-center justify-between">
+                            <span><i class="fas fa-plus-circle mr-2 text-emerald-600"></i> नई डेली सेल एंट्री दर्ज करें</span>
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </a>
+                        <a href="LEN_DEN.html" class="block w-full bg-amber-50 hover:bg-amber-100 text-amber-800 p-3 rounded-lg font-medium text-sm transition flex items-center justify-between">
+                            <span><i class="fas fa-hand-holding-usd mr-2 text-amber-600"></i> नया लेना-देना हिसाब जोड़ें</span>
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </a>
+                        <a href="ORDER.html" class="block w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-800 p-3 rounded-lg font-medium text-sm transition flex items-center justify-between">
+                            <span><i class="fas fa-shopping-cart mr-2 text-indigo-600"></i> डिस्ट्रिब्यूटर ऑर्डर तैयार करें</span>
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </a>
+                    </div>
+                    <div class="mt-4 pt-3 border-t text-xs text-slate-400 text-center">
+                        Medical Store Management System • Cloud Firestore Synced
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBEKFojdvg__D1G1bFxAhW8hOrGF02UCJU",
             authDomain: "medical-8c32b.firebaseapp.com",
@@ -77,48 +157,111 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        // Make auth globally available
-        window.firebaseAuth = auth;
-        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-    </script>
-
-    <script>
-        // पहले से यदि लॉगिन है तो सीधे ORDER.html पर भेजें
-        window.onload = function() {
-            const userLoggedIn = localStorage.getItem('isLoggedIn') || sessionStorage.getItem('isLoggedIn');
-            if (userLoggedIn) {
-                window.location.href = "home.html";
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                localStorage.removeItem('isLoggedIn');
+                window.location.href = "login.html";
+            } else {
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                loadDashboardData();
             }
-        };
+        });
 
-        window.handleLogin = async function(event) {
-            event.preventDefault();
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            signOut(auth).then(() => {
+                localStorage.removeItem('isLoggedIn');
+                window.location.href = "login.html";
+            });
+        });
 
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value.trim();
-            const errorBox = document.getElementById('errorMessage');
-            errorBox.classList.add('hidden');
+        let dashChart = null;
 
-            try {
-                if (window.firebaseAuth && window.signInWithEmailAndPassword) {
-                    // Firebase Authentication
-                    await window.signInWithEmailAndPassword(window.firebaseAuth, email, password);
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('user', email);
-                    window.location.href = "ORDER.html";
-                } else {
-                    // Fallback यदि फायरबेस लोड होने में समय ले
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('user', email);
-                    window.location.href = "ORDER.html";
+        function loadDashboardData() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const currentMonth = todayStr.slice(0, 7);
+
+            onSnapshot(collection(db, 'daily_sales'), (snapshot) => {
+                let todayTotal = 0;
+                let monthTotal = 0;
+                let salesArray = [];
+
+                snapshot.forEach(docSnap => salesArray.push(docSnap.data()));
+                salesArray.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                salesArray.forEach(item => {
+                    if (item.date === todayStr) todayTotal += item.total;
+                    if (item.date.startsWith(currentMonth)) monthTotal += item.total;
+                });
+
+                const recentSales = salesArray.slice(-7);
+                const chartLabels = recentSales.map(i => {
+                    const [y, m, d] = i.date.split('-');
+                    return `${d}-${m}`;
+                });
+                const chartValues = recentSales.map(i => i.total);
+
+                document.getElementById('dashTodaySale').innerText = `₹${todayTotal.toLocaleString('en-IN')}`;
+                document.getElementById('dashMonthSale').innerText = `₹${monthTotal.toLocaleString('en-IN')}`;
+
+                renderDashChart(chartLabels, chartValues);
+            });
+
+            onSnapshot(collection(db, 'len_den'), (snapshot) => {
+                let totalLenaSum = 0;
+                let totalDenaSum = 0;
+
+                snapshot.forEach(docSnap => {
+                    const item = docSnap.data();
+                    const interest = calculateInterest(item.amount, item.interestRate, item.entryDate);
+                    const totalAmount = item.amount + interest;
+                    if (item.entryType === 'lena') totalLenaSum += totalAmount;
+                    else totalDenaSum += totalAmount;
+                });
+
+                document.getElementById('dashTotalLena').innerText = `₹${totalLenaSum.toLocaleString('en-IN')}`;
+                document.getElementById('dashTotalDena').innerText = `₹${totalDenaSum.toLocaleString('en-IN')}`;
+            });
+        }
+
+        function calculateInterest(amount, ratePerMonth, dateStr) {
+            const startDate = new Date(dateStr);
+            const today = new Date();
+            const diffTime = today - startDate;
+            const diffDays = diffTime / (1000 * 60 * 60 * 24);
+            const exactMonths = diffDays / 30.4375;
+            if (exactMonths < 0) return 0;
+            const interest = (amount * ratePerMonth * exactMonths) / 100;
+            return Math.round(interest);
+        }
+
+        function renderDashChart(labels, values) {
+            const ctx = document.getElementById('dashSalesChart').getContext('2d');
+            if (dashChart) dashChart.destroy();
+
+            dashChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels.length ? labels : ['कोई डेटा नहीं'],
+                    datasets: [{
+                        label: 'दैनिक बिक्री (₹)',
+                        data: values.length ? values : [0],
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderColor: 'rgb(5, 150, 105)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
                 }
-            } catch (error) {
-                console.error("Login error:", error.code);
-                errorBox.textContent = "गलत ईमेल या पासवर्ड! कृपया दोबारा प्रयास करें।";
-                errorBox.classList.remove('hidden');
-            }
-        };
+            });
+        }
     </script>
 </body>
 </html>
