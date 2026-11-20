@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>रेगुलर दवा रिमाइंडर (Regular Medicine Tracker)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        #appContainer { display: none; }
+        .tab-active {
+            background-color: #0f766e; /* teal-700 */
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .tab-inactive {
+            background-color: #f0fdfa; /* teal-50 */
+            color: #115e59; /* teal-800 */
+        }
+        .tab-inactive:hover {
+            background-color: #ccfbf1; /* teal-100 */
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans text-slate-800">
+
+    <!-- Loading Screen while checking Auth -->
+    <div id="loadingScreen" class="flex flex-col items-center justify-center min-h-screen bg-slate-50">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-11 w-11 border-b-2 border-teal-600 mx-auto mb-3"></div>
+            <p class="text-slate-600 font-medium text-sm">लॉगिन जाँच हो रही है...</p>
+        </div>
+    </div>
+
+    <div id="appContainer">
+        <!-- Header / Navbar -->
+        <header class="bg-teal-700 text-white shadow-md sticky top-0 z-50">
+            <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
+                <div class="flex items-center space-x-2.5">
+                    <i class="fas fa-pills text-2xl text-amber-300"></i>
+                    <div>
+                        <h1 class="font-bold text-lg sm:text-xl leading-tight">रेगुलर दवा रिमाइंडर व स्टॉक अलर्ट</h1>
+                        <p class="text-xs text-teal-100">नियमित (Daily) ग्राहकों की दवा खत्म होने से पहले अलर्ट</p>
+                    </div>
+                </div>
+                <div class="flex items-center flex-wrap gap-2">
+                    <a href="index.html" class="bg-amber-400 hover:bg-amber-500 text-slate-950 font-semibold text-xs sm:text-sm px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+                        <i class="fas fa-home"></i> <span>होम पेज</span>
+                    </a>
+                    <span id="userBadge" class="hidden md:inline-flex text-xs bg-teal-800 text-teal-100 px-2.5 py-1 rounded-full border border-teal-600 items-center gap-1">
+                        <i class="fas fa-user-check text-emerald-300"></i> <span id="userEmailText"></span>
+                    </span>
+                    <button type="button" onclick="logout()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                        <i class="fas fa-sign-out-alt"></i> <span>लॉग आउट</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-6xl mx-auto p-4 space-y-6">
+
+            <!-- Summary Status Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-rose-600">
+                    <p class="text-xs text-slate-500 font-medium">खत्म हो चुकी / आज खत्म</p>
+                    <h2 id="countExpired" class="text-2xl font-bold text-rose-600 mt-1">0</h2>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-amber-500">
+                    <p class="text-xs text-slate-500 font-medium">5 दिन में खत्म होने वाली (स्टॉक चेक करें)</p>
+                    <h2 id="countSoon" class="text-2xl font-bold text-amber-600 mt-1">0</h2>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-emerald-500">
+                    <p class="text-xs text-slate-500 font-medium">पर्याप्त दवा चल रही है (Safe)</p>
+                    <h2 id="countSafe" class="text-2xl font-bold text-emerald-600 mt-1">0</h2>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-teal-600">
+                    <p class="text-xs text-slate-500 font-medium">कुल रेगुलर ग्राहक</p>
+                    <h2 id="countCustomers" class="text-2xl font-bold text-teal-700 mt-1">0</h2>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="bg-white p-2 rounded-xl shadow-sm flex flex-wrap gap-2">
+                <button type="button" onclick="switchTab('alertListTab')" id="btnAlertList" class="tab-active flex-1 py-2.5 px-4 rounded-lg font-semibold text-sm transition flex items-center justify-center gap-2">
+                    <i class="fas fa-bell"></i> <span>रिमाइंडर और ग्राहक सूची</span>
+                </button>
+                <button type="button" onclick="switchTab('addEntryTab')" id="btnAddEntry" class="tab-inactive flex-1 py-2.5 px-4 rounded-lg font-semibold text-sm transition flex items-center justify-center gap-2">
+                    <i class="fas fa-plus-circle"></i> <span>नया ग्राहक / दवाई जोड़ें</span>
+                </button>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- TAB 1: REMINDER & CUSTOMER MEDICINE LIST                  -->
+            <!-- ========================================================= -->
+            <section id="alertListTab" class="space-y-5">
+                
+                <!-- Filter & Search Bar -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-3 justify-between items-center">
+                    <div class="relative w-full sm:w-80">
+                        <i class="fas fa-search absolute left-3 top-3 text-slate-400 text-sm"></i>
+                        <input type="text" id="searchInput" oninput="renderCustomerList()" placeholder="ग्राहक का नाम, मोबाइल या दवाई खोजें..." 
+                            class="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    </div>
+
+                    <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                        <select id="statusFilter" onchange="renderCustomerList()" class="px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white font-medium flex-1 sm:flex-none">
+                            <option value="ALL">सभी दिखाएं (All)</option>
+                            <option value="URGENT">⚠️ जल्द खत्म / खत्म (0-5 दिन)</option>
+                            <option value="EXPIRED">🚨 खत्म हो चुकी (0 या कम दिन)</option>
+                            <option value="SOON">⏳ 5 दिन में खत्म होने वाली</option>
+                            <option value="SAFE">✅ सुरक्षित (5 दिन से ज्यादा)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Customer Cards Container -->
+                <div id="customerCardsContainer" class="space-y-5">
+                    <div class="bg-white p-8 rounded-xl text-center text-slate-400 shadow-sm">डेटा लोड हो रहा है...</div>
+                </div>
+            </section>
+
+            <!-- ========================================================= -->
+            <!-- TAB 2: ADD CUSTOMER & MULTIPLE MEDICINES FORM             -->
+            <!-- ========================================================= -->
+            <section id="addEntryTab" class="hidden space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2 flex items-center gap-2">
+                        <i class="fas fa-user-plus text-teal-600"></i> ग्राहक विवरण और नियमित दवाइयाँ दर्ज करें
+                    </h2>
+
+                    <form id="regularMedForm" class="space-y-6">
+                        <!-- Step 1: Customer Details -->
+                        <div class="bg-teal-50/70 p-4 rounded-xl border border-teal-200 space-y-4">
+                            <h3 class="text-sm font-bold text-teal-900 flex items-center gap-1.5">
+                                <i class="fas fa-address-card"></i> 1. कस्टमर डिटेल (Customer Details)
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1">ग्राहक का नाम *</label>
+                                    <input type="text" id="custName" required placeholder="जैसे: रमेश चंद्र शर्मा" 
+                                        class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1">मोबाइल नंबर (WhatsApp / Call) *</label>
+                                    <input type="tel" id="custMobile" required placeholder="10 अंकों का मोबाइल नंबर" 
+                                        class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1">पता / बीमारी / नोट (Optional)</label>
+                                    <input type="text" id="custNote" placeholder="जैसे: BP / Sugar / गांव का नाम" 
+                                        class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Medicines List (Multiple Supported) -->
+                        <div class="space-y-4">
+                            <div class="flex flex-wrap justify-between items-center gap-2">
+                                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                                    <i class="fas fa-capsules text-teal-600"></i> 2. दवाइयों की जानकारी (एक से अधिक दवा जोड़ सकते हैं)
+                                </h3>
+                                <button type="button" onclick="addMedicineRow()" 
+                                    class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
+                                    <i class="fas fa-plus"></i> <span>एक और दवाई जोड़ें</span>
+                                </button>
+                            </div>
+
+                            <!-- Dynamic Medicine Rows Container -->
+                            <div id="medicineRowsContainer" class="space-y-4">
+                                <!-- Rows added via JS -->
+                            </div>
+                        </div>
+
+                        <!-- Save Button -->
+                        <div class="pt-2 border-t flex justify-end gap-3">
+                            <button type="submit" id="saveAllBtn" 
+                                class="w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white font-semibold px-8 py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2">
+                                <i class="fas fa-save"></i> <span>ग्राहक और दवाइयाँ सेव करें</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Refill Modal (दवाई दोबारा देने / रिफिल करने के लिए) -->
+    <div id="refillModal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-lg text-slate-800"><i class="fas fa-sync-alt text-teal-600 mr-2"></i>दवाई रिफिल (दोबारा दें)</h3>
+                <button type="button" onclick="closeRefillModal()" class="text-slate-400 hover:text-slate-700 text-xl">&times;</button>
+            </div>
+            <div id="refillMedInfo" class="bg-teal-50 p-3 rounded-lg text-sm text-teal-900 font-medium"></div>
+            <form id="refillForm" class="space-y-3">
+                <input type="hidden" id="refillDocId">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">नई तारीख (Start Date)</label>
+                        <input type="date" id="refillDate" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
+                    </div>
+                    <div id="refillStripsBox">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">कितनी स्ट्रिप (Strips) दी?</label>
+                        <input type="number" id="refillStrips" min="1" value="1" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
+                    </div>
+                    <div id="refillBottlesBox" class="hidden">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">कितनी बोतल (Bottles) दी?</label>
+                        <input type="number" id="refillBottles" min="1" value="1" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" onclick="closeRefillModal()" class="px-4 py-2 text-sm rounded-lg border border-slate-300 hover:bg-slate-100">रद्द करें</button>
+                    <button type="submit" class="px-5 py-2 text-sm rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold">रिफिल अपडेट करें</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs (Auth + Cloud Firestore) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import {
+            getFirestore,
+            collection,
+            doc,
+            addDoc,
+            updateDoc,
+            deleteDoc,
+            onSnapshot
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEKFojdvg__D1G1bFxAhW8hOrGF02UCJU",
+            authDomain: "medical-8c32b.firebaseapp.com",
+            projectId: "medical-8c32b",
+            storageBucket: "medical-8c32b.firebasestorage.app",
+            messagingSenderId: "110333435801",
+            appId: "1:110333435801:web:5abc3c7c35c8e19d22fd08",
+            measurementId: "G-HRGC036927"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let allRecords = [];
+        let unsubscribe = null;
+
+        // Auth Guard
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('user');
+                sessionStorage.clear();
+                window.location.href = "login.html";
+            } else {
+                localStorage.setItem('isLoggedIn', 'true');
+                if (user.email) {
+                    localStorage.setItem('user', user.email);
+                    document.getElementById('userEmailText').textContent = user.email;
+                    document.getElementById('userBadge').classList.remove('hidden');
+                }
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                startFirestoreListener();
+            }
+        });
+
+        window.logout = function() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('user');
+            sessionStorage.clear();
+            signOut(auth)
+                .then(() => { window.location.href = "login.html"; })
+                .catch(() => { window.location.href = "login.html"; });
+        };
+
+        function startFirestoreListener() {
+            if (unsubscribe) unsubscribe();
+            unsubscribe = onSnapshot(collection(db, 'regular_medicines'), (snapshot) => {
+                allRecords = [];
+                snapshot.forEach(docSnap => {
+                    allRecords.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                window.renderCustomerList();
+            }, (err) => {
+                console.error("Firestore error:", err);
+                alert("डेटा लोड करने में समस्या आई: " + err.message);
+            });
+        }
+
+        // =========================================================
+        // DYNAMIC MEDICINE ROW BUILDER (2 to 40 Strip + Syrup ML)
+        // =========================================================
+        let rowCounter = 0;
+
+        // Generate 2 to 40 options HTML
+        let stripSizeOptionsHTML = '';
+        for (let i = 2; i <= 40; i++) {
+            const selected = (i === 10) ? 'selected' : '';
+            stripSizeOptionsHTML += `<option value="${i}" ${selected}>${i} टैबलेट की स्ट्रिप</option>`;
+        }
+
+        window.addMedicineRow = function() {
+            rowCounter++;
+            const rowId = `medRow_${rowCounter}`;
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            const rowHTML = `
+                <div id="${rowId}" class="med-row bg-slate-50 p-4 rounded-xl border border-slate-300 relative space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                        <span class="font-bold text-sm text-teal-800">💊 दवाई #${rowCounter}</span>
+                        ${rowCounter > 1 ? `<button type="button" onclick="removeMedicineRow('${rowId}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold flex items-center gap-1"><i class="fas fa-trash"></i> हटाएं</button>` : ''}
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">दवाई का नाम (Medicine Name) *</label>
+                            <input type="text" class="med-name w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white" required placeholder="जैसे: Telma 40 / Glycomet / Cough Syr">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">दवाई का प्रकार (Type) *</label>
+                            <select class="med-type w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white font-medium" onchange="toggleMedTypeFields('${rowId}')">
+                                <option value="tablet">💊 टैबलेट / कैप्सूल (Strip)</option>
+                                <option value="syrup">🧴 सिरप / लिक्विड (Syrup - ml)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">दवाई लेने की तारीख (Start Date) *</label>
+                            <input type="date" class="med-start-date w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white" value="${todayStr}" required onchange="calculateRowPreview('${rowId}')">
+                        </div>
+                    </div>
+
+                    <!-- TABLET FIELDS (2 to 40 per strip + Daily Dose) -->
+                    <div class="tablet-fields grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-3 rounded-lg border border-slate-200">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">1 स्ट्रिप में कितनी टैबलेट (2 से 40)</label>
+                            <select class="tab-per-strip w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white" onchange="calculateRowPreview('${rowId}')">
+                                ${stripSizeOptionsHTML}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">कितनी स्ट्रिप (पत्ते) ली?</label>
+                            <input type="number" class="tab-strips-bought w-full px-3 py-2 text-sm border border-slate-300 rounded-lg" min="1" value="1" oninput="calculateRowPreview('${rowId}')">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">रोज़ कितनी टैबलेट लेता है (Daily Dose)?</label>
+                            <select class="tab-daily-dose w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white" onchange="calculateRowPreview('${rowId}')">
+                                <option value="0.5">आधी (0.5) टैबलेट रोज़</option>
+                                <option value="1" selected>1 टैबलेट रोज़ (दिन में एक बार)</option>
+                                <option value="2">2 टैबलेट रोज़ (सुबह-शाम)</option>
+                                <option value="3">3 टैबलेट रोज़ (सुबह-दोपहर-शाम)</option>
+                                <option value="4">4 टैबलेट रोज़</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- SYRUP FIELDS (Bottle ml + Daily ml) -->
+                    <div class="syrup-fields hidden grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-3 rounded-lg border border-slate-200">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">1 बोतल कितने ml की है?</label>
+                            <select class="syr-bottle-ml w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white" onchange="calculateRowPreview('${rowId}')">
+                                <option value="30">30 ml</option>
+                                <option value="50">50 ml</option>
+                                <option value="60">60 ml</option>
+                                <option value="100" selected>100 ml</option>
+                                <option value="150">150 ml</option>
+                                <option value="200">200 ml</option>
+                                <option value="300">300 ml</option>
+                                <option value="450">450 ml</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">कितनी बोतल ली?</label>
+                            <input type="number" class="syr-bottles-bought w-full px-3 py-2 text-sm border border-slate-300 rounded-lg" min="1" value="1" oninput="calculateRowPreview('${rowId}')">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">रोज़ कुल कितने ml लेनी है (Daily ml)?</label>
+                            <input type="number" class="syr-daily-ml w-full px-3 py-2 text-sm border border-slate-300 rounded-lg" min="1" step="0.5" value="10" placeholder="उदा. 5ml दो बार = 10" oninput="calculateRowPreview('${rowId}')">
+                        </div>
+                    </div>
+
+                    <!-- Live Calculation Preview Box -->
+                    <div class="row-preview bg-teal-50 px-3 py-2 rounded-lg text-xs text-teal-900 font-medium flex flex-wrap justify-between items-center gap-2">
+                        <span>कुल मात्रा: 10 टैबलेट | रोज़: 1 टैबलेट</span>
+                        <span class="font-bold text-teal-800">कुल 10 दिन चलेगी (खत्म होने की तारीख: --)</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('medicineRowsContainer').insertAdjacentHTML('beforeend', rowHTML);
+            calculateRowPreview(rowId);
+        };
+
+        window.removeMedicineRow = function(rowId) {
+            const el = document.getElementById(rowId);
+            if (el) el.remove();
+        };
+
+        window.toggleMedTypeFields = function(rowId) {
+            const row = document.getElementById(rowId);
+            const type = row.querySelector('.med-type').value;
+            const tabDiv = row.querySelector('.tablet-fields');
+            const syrDiv = row.querySelector('.syrup-fields');
+
+            if (type === 'tablet') {
+                tabDiv.classList.remove('hidden');
+                syrDiv.classList.add('hidden');
+            } else {
+                tabDiv.classList.add('hidden');
+                syrDiv.classList.remove('hidden');
+            }
+            calculateRowPreview(rowId);
+        };
+
+        window.calculateRowPreview = function(rowId) {
+            const row = document.getElementById(rowId);
+            if (!row) return;
+            const type = row.querySelector('.med-type').value;
+            const startDateStr = row.querySelector('.med-start-date').value;
+            const previewEl = row.querySelector('.row-preview');
+
+            let totalQtyText = '';
+            let dailyText = '';
+            let totalDays = 0;
+
+            if (type === 'tablet') {
+                const perStrip = Number(row.querySelector('.tab-per-strip').value) || 10;
+                const strips = Number(row.querySelector('.tab-strips-bought').value) || 1;
+                const daily = Number(row.querySelector('.tab-daily-dose').value) || 1;
+                const totalTabs = perStrip * strips;
+                totalDays = Math.floor(totalTabs / daily);
+                totalQtyText = `${strips} स्ट्रिप (${totalTabs} टैबलेट)`;
+                dailyText = `${daily} टैबलेट/दिन`;
+            } else {
+                const bottleMl = Number(row.querySelector('.syr-bottle-ml').value) || 100;
+                const bottles = Number(row.querySelector('.syr-bottles-bought').value) || 1;
+                const dailyMl = Number(row.querySelector('.syr-daily-ml').value) || 10;
+                const totalMl = bottleMl * bottles;
+                totalDays = Math.floor(totalMl / dailyMl);
+                totalQtyText = `${bottles} बोतल (${totalMl} ml)`;
+                dailyText = `${dailyMl} ml/दिन`;
+            }
+
+            const endDateStr = addDaysToDateStr(startDateStr, totalDays);
+            previewEl.innerHTML = `
+                <span>कुल: <b>${totalQtyText}</b> | खुराक: <b>${dailyText}</b></span>
+                <span class="font-bold text-teal-800">⏳ ${totalDays} दिन चलेगी (खत्म: ${formatHindiDate(endDateStr)})</span>
+            `;
+        };
+
+        // Initialize with 1 medicine row on load
+        window.addEventListener('DOMContentLoaded', () => {
+            addMedicineRow();
+        });
+
+        // =========================================================
+        // SAVE CUSTOMER + ALL MEDICINE ROWS TO FIRESTORE
+        // =========================================================
+        document.getElementById('regularMedForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const custName = document.getElementById('custName').value.trim();
+            const custMobile = document.getElementById('custMobile').value.trim();
+            const custNote = document.getElementById('custNote').value.trim();
+
+            if (!custName || !custMobile) {
+                return alert("कृपया ग्राहक का नाम और मोबाइल नंबर दर्ज करें!");
+            }
+
+            const rows = document.querySelectorAll('.med-row');
+            if (rows.length === 0) {
+                return alert("कम से कम एक दवाई जोड़ें!");
+            }
+
+            const btn = document.getElementById('saveAllBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> सेव हो रहा है...';
+
+            try {
+                const promises = [];
+                rows.forEach(row => {
+                    const medName = row.querySelector('.med-name').value.trim();
+                    const medType = row.querySelector('.med-type').value;
+                    const startDate = row.querySelector('.med-start-date').value;
+
+                    if (!medName) return;
+
+                    let record = {
+                        custName,
+                        custMobile,
+                        custNote,
+                        medName,
+                        medType,
+                        startDate,
+                        createdAt: Date.now()
+                    };
+
+                    if (medType === 'tablet') {
+                        const perStrip = Number(row.querySelector('.tab-per-strip').value) || 10;
+                        const stripsBought = Number(row.querySelector('.tab-strips-bought').value) || 1;
+                        const dailyDose = Number(row.querySelector('.tab-daily-dose').value) || 1;
+                        const totalTabs = perStrip * stripsBought;
+                        const totalDays = Math.floor(totalTabs / dailyDose);
+
+                        record.perStrip = perStrip;
+                        record.unitsBought = stripsBought;
+                        record.totalUnits = totalTabs;
+                        record.dailyDose = dailyDose;
+                        record.totalDays = totalDays;
+                        record.endDate = addDaysToDateStr(startDate, totalDays);
+                    } else {
+                        const bottleMl = Number(row.querySelector('.syr-bottle-ml').value) || 100;
+                        const bottlesBought = Number(row.querySelector('.syr-bottles-bought').value) || 1;
+                        const dailyMl = Number(row.querySelector('.syr-daily-ml').value) || 10;
+                        const totalMl = bottleMl * bottlesBought;
+                        const totalDays = Math.floor(totalMl / dailyMl);
+
+                        record.bottleMl = bottleMl;
+                        record.unitsBought = bottlesBought;
+                        record.totalUnits = totalMl;
+                        record.dailyDose = dailyMl;
+                        record.totalDays = totalDays;
+                        record.endDate = addDaysToDateStr(startDate, totalDays);
+                    }
+
+                    promises.push(addDoc(collection(db, 'regular_medicines'), record));
+                });
+
+                await Promise.all(promises);
+
+                // Reset form
+                document.getElementById('regularMedForm').reset();
+                document.getElementById('medicineRowsContainer').innerHTML = '';
+                rowCounter = 0;
+                addMedicineRow();
+
+                alert("ग्राहक और दवाइयों का रिकॉर्ड सफलतापूर्वक सेव हो गया!");
+                window.switchTab('alertListTab');
+            } catch (err) {
+                console.error("Save error:", err);
+                alert("सेव करने में त्रुटि आई: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> <span>ग्राहक और दवाइयाँ सेव करें</span>';
+            }
+        });
+
+        // =========================================================
+        // RENDER GROUPED CUSTOMER CARDS & REMINDER ALERTS
+        // =========================================================
+        window.renderCustomerList = function() {
+            const container = document.getElementById('customerCardsContainer');
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            let expiredCount = 0;
+            let soonCount = 0;
+            let safeCount = 0;
+
+            // Calculate remaining days for every medicine
+            const enriched = allRecords.map(rec => {
+                const daysLeft = getRemainingDays(rec.endDate);
+                if (daysLeft <= 0) expiredCount++;
+                else if (daysLeft <= 5) soonCount++;
+                else safeCount++;
+                return { ...rec, daysLeft };
+            });
+
+            // Group by customer (Name + Mobile)
+            const customerGroups = {};
+            enriched.forEach(item => {
+                const key = `${item.custName.toLowerCase()}_${item.custMobile}`;
+                if (!customerGroups[key]) {
+                    customerGroups[key] = {
+                        custName: item.custName,
+                        custMobile: item.custMobile,
+                        custNote: item.custNote || '',
+                        medicines: [],
+                        minDaysLeft: item.daysLeft
+                    };
+                }
+                customerGroups[key].medicines.push(item);
+                if (item.daysLeft < customerGroups[key].minDaysLeft) {
+                    customerGroups[key].minDaysLeft = item.daysLeft;
+                }
+            });
+
+            const groupsArray = Object.values(customerGroups);
+
+            // Update Top Dashboard Cards
+            document.getElementById('countExpired').innerText = expiredCount;
+            document.getElementById('countSoon').innerText = soonCount;
+            document.getElementById('countSafe').innerText = safeCount;
+            document.getElementById('countCustomers').innerText = groupsArray.length;
+
+            // Sort customers so most urgent (least days remaining) appear on top
+            groupsArray.sort((a, b) => a.minDaysLeft - b.minDaysLeft);
+
+            // Apply Search & Status Filters
+            const filteredGroups = groupsArray.filter(group => {
+                const matchesSearch = !searchQuery ||
+                    group.custName.toLowerCase().includes(searchQuery) ||
+                    group.custMobile.includes(searchQuery) ||
+                    group.medicines.some(m => m.medName.toLowerCase().includes(searchQuery));
+
+                if (!matchesSearch) return false;
+
+                if (statusFilter === 'ALL') return true;
+                if (statusFilter === 'URGENT') return group.medicines.some(m => m.daysLeft <= 5);
+                if (statusFilter === 'EXPIRED') return group.medicines.some(m => m.daysLeft <= 0);
+                if (statusFilter === 'SOON') return group.medicines.some(m => m.daysLeft > 0 && m.daysLeft <= 5);
+                if (statusFilter === 'SAFE') return group.medicines.every(m => m.daysLeft > 5);
+                return true;
+            });
+
+            container.innerHTML = '';
+
+            if (filteredGroups.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white p-10 rounded-xl text-center text-slate-400 shadow-sm border border-slate-200">
+                        <i class="fas fa-folder-open text-3xl mb-2 block text-slate-300"></i>
+                        कोई रिकॉर्ड नहीं मिला। नया ग्राहक जोड़ने के लिए "नया ग्राहक / दवाई जोड़ें" पर क्लिक करें।
+                    </div>
+                `;
+                return;
+            }
+
+            filteredGroups.forEach(group => {
+                // Sort medicines inside customer card by urgency
+                group.medicines.sort((a, b) => a.daysLeft - b.daysLeft);
+
+                const hasUrgent = group.minDaysLeft <= 5;
+                const headerBg = group.minDaysLeft <= 0
+                    ? 'bg-rose-50 border-rose-200'
+                    : (group.minDaysLeft <= 5 ? 'bg-amber-50 border-amber-200' : 'bg-teal-50/70 border-slate-200');
+
+                // Build WhatsApp Reminder Text for urgent medicines
+                const urgentMedsNames = group.medicines
+                    .filter(m => m.daysLeft <= 5)
+                    .map(m => `${m.medName} (${m.daysLeft <= 0 ? 'खत्म हो गई है' : m.daysLeft + ' दिन बाकी'})`)
+                    .join(', ');
+                const waText = encodeURIComponent(`नमस्ते ${group.custName} जी, मेडिकल स्टोर से याद दिला रहे हैं कि आपकी नियमित दवाई: ${urgentMedsNames || group.medicines[0].medName} खत्म होने वाली है। कृपया समय पर दवाई मंगवा लें।`);
+                const cleanPhone = group.custMobile.replace(/\D/g, '');
+                const waPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+
+                let medRowsHTML = '';
+                group.medicines.forEach(med => {
+                    let statusBadge = '';
+                    if (med.daysLeft < 0) {
+                        statusBadge = `<span class="bg-rose-100 text-rose-800 px-2.5 py-1 rounded-full text-xs font-bold">🚨 ${Math.abs(med.daysLeft)} दिन पहले खत्म</span>`;
+                    } else if (med.daysLeft === 0) {
+                        statusBadge = `<span class="bg-rose-100 text-rose-800 px-2.5 py-1 rounded-full text-xs font-bold">🚨 आज खत्म हो रही है</span>`;
+                    } else if (med.daysLeft <= 5) {
+                        statusBadge = `<span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full text-xs font-bold">⚠️ सिर्फ ${med.daysLeft} दिन बाकी (स्टॉक चेक करें)</span>`;
+                    } else {
+                        statusBadge = `<span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full text-xs font-semibold">✅ ${med.daysLeft} दिन बाकी</span>`;
+                    }
+
+                    const doseDesc = med.medType === 'tablet'
+                        ? `${med.unitsBought} स्ट्रिप (${med.perStrip} टैब/पत्ता) • रोज़ ${med.dailyDose} टैबलेट`
+                        : `${med.unitsBought} बोतल (${med.bottleMl} ml) • रोज़ ${med.dailyDose} ml`;
+
+                    medRowsHTML += `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3 px-4">
+                                <span class="font-bold text-slate-800 block">${med.medType === 'tablet' ? '💊' : '🧴'} ${med.medName}</span>
+                                <span class="text-xs text-slate-500">${doseDesc}</span>
+                            </td>
+                            <td class="py-3 px-4 text-xs text-slate-600 whitespace-nowrap">
+                                <div>शुरू: <b>${formatHindiDate(med.startDate)}</b></div>
+                                <div>खत्म: <b class="text-slate-800">${formatHindiDate(med.endDate)}</b></div>
+                            </td>
+                            <td class="py-3 px-4">${statusBadge}</td>
+                            <td class="py-3 px-4 text-right whitespace-nowrap space-x-1.5">
+                                <button type="button" onclick="openRefillModal('${med.id}')" 
+                                    class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg transition shadow-sm" title="दवाई दोबारा दें">
+                                    <i class="fas fa-redo-alt mr-1"></i>रिफिल
+                                </button>
+                                <button type="button" onclick="deleteMedRecord('${med.id}')" 
+                                    class="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1.5 rounded-lg transition" title="हटाएं">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                const cardHTML = `
+                    <div class="bg-white rounded-xl shadow-sm border ${hasUrgent ? 'border-amber-300' : 'border-slate-200'} overflow-hidden">
+                        <!-- Customer Card Header -->
+                        <div class="${headerBg} px-5 py-3.5 border-b flex flex-wrap justify-between items-center gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-teal-700 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                                    ${group.custName.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-base sm:text-lg text-slate-800 flex items-center gap-2">
+                                        <span>${group.custName}</span>
+                                        <span class="text-xs font-normal bg-white px-2 py-0.5 rounded-full border text-slate-600">${group.medicines.length} दवाई</span>
+                                    </h3>
+                                    <div class="text-xs text-slate-600 flex flex-wrap items-center gap-3 mt-0.5">
+                                        <span><i class="fas fa-phone-alt text-teal-700 mr-1"></i>${group.custMobile}</span>
+                                        ${group.custNote ? `<span><i class="fas fa-info-circle text-slate-400 mr-1"></i>${group.custNote}</span>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <a href="tel:${group.custMobile}" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-semibold px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                                    <i class="fas fa-phone text-teal-600"></i> कॉल
+                                </a>
+                                <a href="https://wa.me/${waPhone}?text=${waText}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition flex items-center gap-1 shadow-sm">
+                                    <i class="fab fa-whatsapp text-sm"></i> रिमाइंडर भेजें
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Medicines Table inside Customer Card -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead>
+                                    <tr class="bg-slate-50 text-slate-500 border-b text-xs">
+                                        <th class="py-2 px-4">दवाई व खुराक (Dose)</th>
+                                        <th class="py-2 px-4">तारीख (शुरू / खत्म)</th>
+                                        <th class="py-2 px-4">स्टॉक / रिमाइंडर स्थिति</th>
+                                        <th class="py-2 px-4 text-right">कारवाई</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    ${medRowsHTML}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+
+                container.innerHTML += cardHTML;
+            });
+        };
+
+        // =========================================================
+        // REFILL MODAL & DELETE FUNCTIONS
+        // =========================================================
+        window.openRefillModal = function(docId) {
+            const rec = allRecords.find(r => r.id === docId);
+            if (!rec) return;
+
+            document.getElementById('refillDocId').value = docId;
+            document.getElementById('refillDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('refillMedInfo').innerHTML = `
+                ग्राहक: <b>${rec.custName}</b><br>
+                दवाई: <b>${rec.medName}</b> (${rec.medType === 'tablet' ? `${rec.perStrip} टैब/स्ट्रिप` : `${rec.bottleMl} ml बोतल`})
+            `;
+
+            if (rec.medType === 'tablet') {
+                document.getElementById('refillStripsBox').classList.remove('hidden');
+                document.getElementById('refillBottlesBox').classList.add('hidden');
+                document.getElementById('refillStrips').value = rec.unitsBought || 1;
+            } else {
+                document.getElementById('refillStripsBox').classList.add('hidden');
+                document.getElementById('refillBottlesBox').classList.remove('hidden');
+                document.getElementById('refillBottles').value = rec.unitsBought || 1;
+            }
+
+            document.getElementById('refillModal').classList.remove('hidden');
+        };
+
+        window.closeRefillModal = function() {
+            document.getElementById('refillModal').classList.add('hidden');
+        };
+
+        document.getElementById('refillForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const docId = document.getElementById('refillDocId').value;
+            const newStartDate = document.getElementById('refillDate').value;
+            const rec = allRecords.find(r => r.id === docId);
+            if (!rec) return;
+
+            let unitsBought = 1;
+            let totalUnits = 0;
+            if (rec.medType === 'tablet') {
+                unitsBought = Number(document.getElementById('refillStrips').value) || 1;
+                totalUnits = (rec.perStrip || 10) * unitsBought;
+            } else {
+                unitsBought = Number(document.getElementById('refillBottles').value) || 1;
+                totalUnits = (rec.bottleMl || 100) * unitsBought;
+            }
+
+            const totalDays = Math.floor(totalUnits / (rec.dailyDose || 1));
+            const newEndDate = addDaysToDateStr(newStartDate, totalDays);
+
+            try {
+                await updateDoc(doc(db, 'regular_medicines', docId), {
+                    startDate: newStartDate,
+                    unitsBought: unitsBought,
+                    totalUnits: totalUnits,
+                    totalDays: totalDays,
+                    endDate: newEndDate
+                });
+                closeRefillModal();
+                alert("दवाई रिफिल अपडेट हो गई! नई समाप्ति तारीख: " + formatHindiDate(newEndDate));
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        });
+
+        window.deleteMedRecord = async function(docId) {
+            if (confirm("क्या आप इस दवाई के रिमाइंडर को हटाना चाहते हैं?")) {
+                try {
+                    await deleteDoc(doc(db, 'regular_medicines', docId));
+                } catch (err) {
+                    alert("Error deleting: " + err.message);
+                }
+            }
+        };
+
+        // =========================================================
+        // HELPER FUNCTIONS (DATE & TAB SWITCHING)
+        // =========================================================
+        window.switchTab = function(tabId) {
+            const alertTab = document.getElementById('alertListTab');
+            const addTab = document.getElementById('addEntryTab');
+            const btnAlert = document.getElementById('btnAlertList');
+            const btnAdd = document.getElementById('btnAddEntry');
+
+            if (tabId === 'alertListTab') {
+                alertTab.classList.remove('hidden');
+                addTab.classList.add('hidden');
+                btnAlert.classList.add('tab-active');
+                btnAlert.classList.remove('tab-inactive');
+                btnAdd.classList.remove('tab-active');
+                btnAdd.classList.add('tab-inactive');
+            } else {
+                alertTab.classList.add('hidden');
+                addTab.classList.remove('hidden');
+                btnAdd.classList.add('tab-active');
+                btnAdd.classList.remove('tab-inactive');
+                btnAlert.classList.remove('tab-active');
+                btnAlert.classList.add('tab-inactive');
+            }
+        };
+
+        function addDaysToDateStr(dateStr, days) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+            d.setDate(d.getDate() + Number(days));
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        function getRemainingDays(endDateStr) {
+            if (!endDateStr) return 0;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const parts = endDateStr.split('-');
+            const end = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+            end.setHours(0, 0, 0, 0);
+            const diffTime = end - today;
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        function formatHindiDate(dateStr) {
+            if (!dateStr) return '--';
+            const [y, m, d] = dateStr.split('-');
+            return `${d}-${m}-${y}`;
+        }
+    </script>
+</body>
+</html>
