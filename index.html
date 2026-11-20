@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>मेडिकल स्टोर डैशबोर्ड (Firestore)</title>
+    <title>मेडिकल स्टोर व खेती डैशबोर्ड (Firestore)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -34,7 +34,8 @@
         </nav>
 
         <main class="max-w-7xl mx-auto p-4 space-y-6">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Module Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <a href="ORDER.html" class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-indigo-500 hover:shadow-md transition flex items-center justify-between group">
                     <div>
                         <p class="text-xs text-slate-400 uppercase font-semibold">ऑर्डर मॉड्यूल</p>
@@ -68,6 +69,28 @@
                     </div>
                 </a>
 
+                <a href="REGULAR_MEDICINE.html" class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-teal-600 hover:shadow-md transition flex items-center justify-between group">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">दवा रिमाइंडर</p>
+                        <h3 class="text-lg font-bold text-slate-800 mt-0.5 group-hover:text-teal-700 transition">रेगुलर मेडिसिन अलर्ट</h3>
+                        <p class="text-xs text-slate-500 mt-1">टैबलेट स्ट्रिप व सिरप ml खत्म होने का अलर्ट</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-teal-50 text-teal-700 flex items-center justify-center text-xl">
+                        <i class="fas fa-capsules"></i>
+                    </div>
+                </a>
+
+                <a href="KHETI.html" class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-lime-600 hover:shadow-md transition flex items-center justify-between group">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">कृषि खाता</p>
+                        <h3 class="text-lg font-bold text-slate-800 mt-0.5 group-hover:text-lime-700 transition">खेती-बाड़ी हिसाब</h3>
+                        <p class="text-xs text-slate-500 mt-1">ट्रैक्टर, खाद-बीज, मजदूरी व फसल बिक्री</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-lime-50 text-lime-700 flex items-center justify-center text-xl">
+                        <i class="fas fa-tractor"></i>
+                    </div>
+                </a>
+
                 <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500 flex items-center justify-between">
                     <div>
                         <p class="text-xs text-slate-400 uppercase font-semibold">सिक्योरिटी</p>
@@ -80,7 +103,8 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Summary Metrics Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
                 <div class="bg-white p-5 rounded-xl shadow-sm border-t-2 border-emerald-500">
                     <p class="text-xs text-slate-500 font-medium">आज की कुल बिक्री (Today Sales)</p>
                     <h2 id="dashTodaySale" class="text-xl font-bold text-emerald-700 mt-1">₹0</h2>
@@ -96,6 +120,14 @@
                 <div class="bg-white p-5 rounded-xl shadow-sm border-t-2 border-amber-500">
                     <p class="text-xs text-slate-500 font-medium">कुल देना है (Total Dena)</p>
                     <h2 id="dashTotalDena" class="text-xl font-bold text-amber-600 mt-1">₹0</h2>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border-t-2 border-teal-600">
+                    <p class="text-xs text-slate-500 font-medium">जल्द खत्म दवा अलर्ट</p>
+                    <h2 id="dashMedAlert" class="text-xl font-bold text-teal-700 mt-1">0</h2>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border-t-2 border-lime-600">
+                    <p class="text-xs text-slate-500 font-medium">कुल खेती खर्च</p>
+                    <h2 id="dashKhetiExpense" class="text-xl font-bold text-lime-700 mt-1">₹0</h2>
                 </div>
             </div>
 
@@ -118,7 +150,7 @@
                             <i class="fas fa-bolt text-indigo-600 mr-2"></i>त्वरित शॉर्टकट (Quick Actions)
                         </h3>
                     </div>
-                    <div class="space-y-3">
+                    <div class="space-y-2.5">
                         <a href="SALES.html" class="block w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 p-3 rounded-lg font-medium text-sm transition flex items-center justify-between">
                             <span><i class="fas fa-plus-circle mr-2 text-emerald-600"></i> नई डेली सेल एंट्री दर्ज करें</span>
                             <i class="fas fa-chevron-right text-xs"></i>
@@ -131,9 +163,17 @@
                             <span><i class="fas fa-shopping-cart mr-2 text-indigo-600"></i> डिस्ट्रिब्यूटर ऑर्डर तैयार करें</span>
                             <i class="fas fa-chevron-right text-xs"></i>
                         </a>
+                        <a href="REGULAR_MEDICINE.html" class="block w-full bg-teal-50 hover:bg-teal-100 text-teal-800 p-3 rounded-lg font-medium text-sm transition flex items-center justify-between">
+                            <span><i class="fas fa-pills mr-2 text-teal-700"></i> रेगुलर मेडिसिन रिमाइंडर देखें</span>
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </a>
+                        <a href="KHETI.html" class="block w-full bg-lime-50 hover:bg-lime-100 text-lime-800 p-3 rounded-lg font-medium text-sm transition flex items-center justify-between">
+                            <span><i class="fas fa-tractor mr-2 text-lime-700"></i> खेती-बाड़ी का हिसाब खोलें</span>
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </a>
                     </div>
                     <div class="mt-4 pt-3 border-t text-xs text-slate-400 text-center">
-                        Medical Store Management System • Cloud Firestore Synced
+                        Medical Store & Kheti Management System • Cloud Firestore Synced
                     </div>
                 </div>
             </div>
@@ -178,6 +218,24 @@
         });
 
         let dashChart = null;
+        let tractorSum = 0;
+        let inputsSum = 0;
+        let labourSum = 0;
+
+        function updateKhetiTotalDisplay() {
+            const grandExpense = tractorSum + inputsSum + labourSum;
+            document.getElementById('dashKhetiExpense').innerText = `₹${grandExpense.toLocaleString('en-IN')}`;
+        }
+
+        function getRemainingDays(endDateStr) {
+            if (!endDateStr) return 999;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const parts = endDateStr.split('-');
+            const end = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+            end.setHours(0, 0, 0, 0);
+            return Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+        }
 
         function loadDashboardData() {
             const todayStr = new Date().toISOString().split('T')[0];
@@ -223,6 +281,39 @@
 
                 document.getElementById('dashTotalLena').innerText = `₹${totalLenaSum.toLocaleString('en-IN')}`;
                 document.getElementById('dashTotalDena').innerText = `₹${totalDenaSum.toLocaleString('en-IN')}`;
+            });
+
+            onSnapshot(collection(db, 'regular_medicines'), (snapshot) => {
+                let urgentCount = 0;
+                snapshot.forEach(docSnap => {
+                    const item = docSnap.data();
+                    if (getRemainingDays(item.endDate) <= 5) urgentCount++;
+                });
+                document.getElementById('dashMedAlert').innerText = `${urgentCount}`;
+            });
+
+            onSnapshot(collection(db, 'kheti_tractor_work'), (snapshot) => {
+                tractorSum = 0;
+                snapshot.forEach(docSnap => {
+                    tractorSum += Number(docSnap.data().totalAmount) || 0;
+                });
+                updateKhetiTotalDisplay();
+            });
+
+            onSnapshot(collection(db, 'kheti_inputs'), (snapshot) => {
+                inputsSum = 0;
+                snapshot.forEach(docSnap => {
+                    inputsSum += Number(docSnap.data().amount) || 0;
+                });
+                updateKhetiTotalDisplay();
+            });
+
+            onSnapshot(collection(db, 'kheti_labour'), (snapshot) => {
+                labourSum = 0;
+                snapshot.forEach(docSnap => {
+                    labourSum += Number(docSnap.data().amount) || 0;
+                });
+                updateKhetiTotalDisplay();
             });
         }
 
