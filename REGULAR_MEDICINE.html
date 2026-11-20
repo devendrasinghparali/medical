@@ -645,7 +645,7 @@
                     .filter(m => m.daysLeft <= 5)
                     .map(m => `${m.medName} (${m.daysLeft <= 0 ? 'खत्म हो गई है' : m.daysLeft + ' दिन बाकी'})`)
                     .join(', ');
-                const waText = encodeURIComponent(`नमस्ते ${group.custName} जी, मेडिकल स्टोर से याद दिला रहे हैं कि आपकी नियमित दवाई: ${urgentMedsNames || group.medicines[0].medName} खत्म होने वाली है। कृपया समय पर दवाई मंगवा लें।`);
+                const waText = encodeURIComponent(`नमस्ते ${group.custName} जी, किरण मेडिकल स्टोर खेजड़िया से आपको याद दिला रहे हैं कि आपकी नियमित दवाई: ${urgentMedsNames || group.medicines[0].medName} खत्म होने वाली है। कृपया समय पर दवाई मंगवा लें।`);
                 const cleanPhone = group.custMobile.replace(/\D/g, '');
                 const waPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
 
