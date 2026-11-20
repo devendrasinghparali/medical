@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>खेती-बाड़ी हिसाब किताब (Kheti Khata)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-active {
+            background-color: #15803d; /* green-700 */
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .tab-inactive {
+            background-color: #f0fdf4; /* green-50 */
+            color: #166534; /* green-800 */
+        }
+        .tab-inactive:hover {
+            background-color: #dcfce7; /* green-100 */
+        }
+        #appContainer {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-stone-100 min-h-screen font-sans text-slate-800">
+
+    <!-- Loading Screen while checking Auth -->
+    <div id="loadingScreen" class="flex flex-col items-center justify-center min-h-screen bg-stone-100">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-11 w-11 border-b-2 border-green-700 mx-auto mb-3"></div>
+            <p class="text-slate-600 font-medium text-sm">लॉगिन जाँच हो रही है...</p>
+        </div>
+    </div>
+
+    <div id="appContainer">
+        <!-- Navbar -->
+        <nav class="bg-green-800 text-white shadow-md sticky top-0 z-50">
+            <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-tractor text-2xl text-amber-300"></i>
+                    <div>
+                        <span class="font-bold text-lg tracking-wide block leading-tight">खेती-बाड़ी हिसाब</span>
+                        <span class="text-xs text-green-200 block">ट्रैक्टर, मशीनरी, खाद-बीज व मजदूरी खाता</span>
+                    </div>
+                </div>
+                <div class="flex items-center flex-wrap gap-2">
+                    <a href="index.html" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold text-xs sm:text-sm px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+                        <i class="fas fa-home"></i> <span>होम पेज</span>
+                    </a>
+                    <span id="userBadge" class="hidden sm:inline-flex text-xs bg-green-900 text-green-100 px-2.5 py-1 rounded-full border border-green-700 items-center gap-1">
+                        <i class="fas fa-user-check text-emerald-300"></i> <span id="userEmailText"></span>
+                    </span>
+                    <button type="button" onclick="logout()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                        <i class="fas fa-sign-out-alt"></i> <span>लॉग आउट</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Container -->
+        <main class="max-w-6xl mx-auto p-4 space-y-6">
+
+            <!-- Top Overall Summary Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-amber-500">
+                    <p class="text-xs text-slate-500 font-medium">ट्रैक्टर व मशीनरी कुल</p>
+                    <h2 id="sumTractor" class="text-xl sm:text-2xl font-bold text-amber-700 mt-1">₹0</h2>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-emerald-500">
+                    <p class="text-xs text-slate-500 font-medium">खाद, बीज व दवाई</p>
+                    <h2 id="sumInputs" class="text-xl sm:text-2xl font-bold text-emerald-700 mt-1">₹0</h2>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
+                    <p class="text-xs text-slate-500 font-medium">मजदूरी व अन्य खर्च</p>
+                    <h2 id="sumLabour" class="text-xl sm:text-2xl font-bold text-blue-700 mt-1">₹0</h2>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-rose-600">
+                    <p class="text-xs text-slate-500 font-medium">कुल खेती खर्च (Grand Total)</p>
+                    <h2 id="sumGrandTotal" class="text-xl sm:text-2xl font-bold text-rose-700 mt-1">₹0</h2>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="bg-white p-2 rounded-xl shadow-sm flex flex-wrap gap-2">
+                <button type="button" onclick="switchSection('tractorSection')" id="tabTractor" class="tab-active flex-1 py-2.5 px-3 rounded-lg font-semibold text-sm transition flex items-center justify-center gap-2">
+                    <i class="fas fa-tractor"></i> <span>ट्रैक्टर व मशीनरी</span>
+                </button>
+                <button type="button" onclick="switchSection('inputsSection')" id="tabInputs" class="tab-inactive flex-1 py-2.5 px-3 rounded-lg font-semibold text-sm transition flex items-center justify-center gap-2">
+                    <i class="fas fa-seedling"></i> <span>खाद, बीज व दवाई</span>
+                </button>
+                <button type="button" onclick="switchSection('labourSection')" id="tabLabour" class="tab-inactive flex-1 py-2.5 px-3 rounded-lg font-semibold text-sm transition flex items-center justify-center gap-2">
+                    <i class="fas fa-users"></i> <span>मजदूरी व सिंचाई/अन्य</span>
+                </button>
+                <button type="button" onclick="switchSection('cropSaleSection')" id="tabCropSale" class="tab-inactive flex-1 py-2.5 px-3 rounded-lg font-semibold text-sm transition flex items-center justify-center gap-2">
+                    <i class="fas fa-wheat-awn"></i> <span>फसल बिक्री (आमदनी)</span>
+                </button>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- SECTION 1: TRACTOR & MACHINERY (HOURLY + FIXED WORK)      -->
+            <!-- ========================================================= -->
+            <section id="tractorSection" class="space-y-6">
+                
+                <!-- Add New Tractor Owner & Field Name Quick Bar -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Add Owner -->
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200">
+                        <h3 class="text-sm font-bold text-slate-700 mb-2 flex items-center gap-1.5">
+                            <i class="fas fa-user-plus text-amber-600"></i> नया ट्रैक्टर मालिक जोड़ें
+                        </h3>
+                        <div class="flex gap-2">
+                            <input type="text" id="newOwnerName" placeholder="मालिक का नाम (जैसे: रामलाल जी)" 
+                                class="flex-1 px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">
+                            <button type="button" onclick="addOwner()" 
+                                class="bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+                                जोड़ें
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Add Field (Khet) Name -->
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200">
+                        <h3 class="text-sm font-bold text-slate-700 mb-2 flex items-center gap-1.5">
+                            <i class="fas fa-map-marked-alt text-green-600"></i> नया खेत का नाम जोड़ें
+                        </h3>
+                        <div class="flex gap-2">
+                            <input type="text" id="newFieldName" placeholder="खेत का नाम (जैसे: कुएं वाला खेत)" 
+                                class="flex-1 px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <button type="button" onclick="addField()" 
+                                class="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+                                जोड़ें
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tractor / Machine Entry Form -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2 flex items-center justify-between">
+                        <span><i class="fas fa-file-invoice text-amber-600 mr-2"></i>ट्रैक्टर / मशीनरी काम की एंट्री</span>
+                        <span class="text-xs font-normal text-slate-500">घंटा-मिनट या फिक्स काम दोनों के लिए</span>
+                    </h3>
+
+                    <form id="tractorForm" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Owner Select -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">ट्रैक्टर मालिक का नाम *</label>
+                                <select id="ownerSelect" required 
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                                    <option value="">-- मालिक चुनें --</option>
+                                </select>
+                            </div>
+
+                            <!-- Field Select -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">खेत का नाम *</label>
+                                <select id="fieldSelect" required 
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                                    <option value="">-- खेत चुनें --</option>
+                                </select>
+                            </div>
+
+                            <!-- Date -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">तारीख (Date) *</label>
+                                <input type="date" id="workDate" required 
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">
+                            </div>
+                        </div>
+
+                        <!-- Billing Mode Toggle: Hourly vs Fixed/Machine -->
+                        <div class="bg-amber-50/70 p-3 rounded-xl border border-amber-200">
+                            <label class="block text-sm font-bold text-amber-900 mb-2">हिसाब का तरीका चुनें:</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <label class="flex items-center p-3 bg-white rounded-lg border-2 border-amber-500 cursor-pointer" id="modeHourlyLabel">
+                                    <input type="radio" name="billingMode" value="hourly" checked onchange="toggleBillingMode()" class="w-4 h-4 text-amber-600">
+                                    <div class="ml-3">
+                                        <span class="block text-sm font-bold text-slate-800">⏱️ घंटे / मिनट के हिसाब से</span>
+                                        <span class="block text-xs text-slate-500">जुताई, कल्टीवेटर, रोटावेटर, बुवाई आदि</span>
+                                    </div>
+                                </label>
+                                <label class="flex items-center p-3 bg-white rounded-lg border border-slate-300 cursor-pointer" id="modeFixedLabel">
+                                    <input type="radio" name="billingMode" value="fixed" onchange="toggleBillingMode()" class="w-4 h-4 text-amber-600">
+                                    <div class="ml-3">
+                                        <span class="block text-sm font-bold text-slate-800">🚜 मशीन / फिक्स काम (बिना घंटे)</span>
+                                        <span class="block text-xs text-slate-500">हार्वेस्टर, थ्रेशर, ट्रॉली फेरा, बीघा/बोरी रेट</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- HOURLY FIELDS -->
+                        <div id="hourlyFields" class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">काम का प्रकार (जैसे: रोटावेटर)</label>
+                                <input type="text" id="hourlyWorkType" placeholder="जुताई / कल्टीवेटर / बुवाई..." 
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">कितने घंटे (Hours)</label>
+                                <input type="number" id="workHours" min="0" value="0" oninput="calculateHourlyTotal()" 
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">कितने मिनट (Minutes)</label>
+                                <input type="number" id="workMinutes" min="0" max="59" value="0" oninput="calculateHourlyTotal()" 
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">रेट प्रति घंटा (₹ / Hour)</label>
+                                <input type="number" id="hourlyRate" min="0" placeholder="उदा. 800" oninput="calculateHourlyTotal()" 
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                            </div>
+                        </div>
+
+                        <!-- FIXED / MACHINE FIELDS -->
+                        <div id="fixedFields" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">मशीन / काम का प्रकार *</label>
+                                <input type="text" id="fixedWorkType" placeholder="जैसे: थ्रेशर, हार्वेस्टर, ट्रॉली भाड़ा..." 
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">कुल राशि (₹) *</label>
+                                <input type="number" id="fixedAmount" min="0" placeholder="कुल रुपए लिखें..." oninput="updateFixedTotal()" 
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">विवरण (Details / मात्रा)</label>
+                                <input type="text" id="fixedDetails" placeholder="जैसे: 4 बीघा कटाई @ 1200 या 3 ट्रॉली..." 
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                            </div>
+                        </div>
+
+                        <!-- Calculated Total & Payment Status -->
+                        <div class="flex flex-col sm:flex-row justify-between items-center bg-green-50 p-4 rounded-xl border border-green-200 gap-4">
+                            <div class="flex items-center gap-4">
+                                <div>
+                                    <span class="text-xs text-slate-500 block">कुल बनने वाली राशि:</span>
+                                    <span id="calculatedAmountDisplay" class="text-2xl font-bold text-green-800">₹0</span>
+                                </div>
+                                <div class="border-l border-green-300 pl-4">
+                                    <label class="block text-xs text-slate-600 mb-1">भुगतान स्थिति (Payment):</label>
+                                    <select id="paymentStatus" class="px-2.5 py-1.5 text-sm border border-green-300 rounded-lg bg-white font-medium">
+                                        <option value="baaki">बाकी है (उधार)</option>
+                                        <option value="paid">जमा हो गया (Paid)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button type="submit" id="saveTractorBtn" 
+                                class="w-full sm:w-auto bg-green-700 hover:bg-green-800 text-white font-semibold px-6 py-3 rounded-xl shadow transition flex items-center justify-center gap-2">
+                                <i class="fas fa-save"></i> <span>ट्रैक्टर हिसाब सेव करें</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- OWNER-WISE LEDGER CARDS (मालिक के वाइस अलग-अलग हिसाब) -->
+                <div class="space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-address-book text-amber-600"></i> मालिक के अनुसार अलग-अलग हिसाब (Owner-Wise Ledger)
+                        </h3>
+                        <select id="ownerFilter" onchange="renderOwnerWiseLedger()" class="px-3 py-1.5 text-sm border border-slate-300 rounded-lg bg-white">
+                            <option value="ALL">सभी मालिक दिखाएं</option>
+                        </select>
+                    </div>
+
+                    <div id="ownerLedgerContainer" class="space-y-6">
+                        <div class="bg-white p-6 rounded-xl text-center text-slate-400 shadow-sm">डेटा लोड हो रहा है...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================= -->
+            <!-- SECTION 2: SEEDS, FERTILIZER & PESTICIDES (खाद, बीज, दवाई) -->
+            <!-- ========================================================= -->
+            <section id="inputsSection" class="hidden space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">
+                        <i class="fas fa-seedling text-emerald-600 mr-2"></i>खाद, बीज व दवाई का खर्च जोड़ें
+                    </h3>
+                    <form id="inputsForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">श्रेणी (Category)</label>
+                            <select id="inputCategory" required class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white">
+                                <option value="खाद (Fertilizer - यूरिया/DAP)">खाद (यूरिया / DAP / पोटाश)</option>
+                                <option value="बीज (Seeds)">बीज (Seeds)</option>
+                                <option value="कीटनाशक / दवाई (Pesticides)">कीटनाशक / खरपतवार नाशक दवाई</option>
+                                <option value="टॉनिक / ग्रोथ प्रमोटर">टॉनिक / ग्रोथ प्रमोटर</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">सामान का नाम व मात्रा *</label>
+                            <input type="text" id="inputItemName" placeholder="जैसे: 5 बोरी यूरिया या सोयाबीन बीज" required 
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">खेत का नाम (Optional)</label>
+                            <select id="inputFieldSelect" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white">
+                                <option value="सामान्य / सभी खेत">सामान्य / सभी खेत</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">दुकान का नाम / विवरण</label>
+                            <input type="text" id="inputShopNote" placeholder="किस दुकान से लिया या उधार/नकद..." 
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">तारीख (Date) *</label>
+                            <input type="date" id="inputDate" required class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">कुल राशि (₹) *</label>
+                            <input type="number" id="inputAmount" min="1" placeholder="रुपए लिखें..." required 
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                        </div>
+                        <div class="md:col-span-3 flex justify-end">
+                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-2.5 rounded-lg shadow transition">
+                                <i class="fas fa-save mr-1"></i> खाद-बीज खर्च सेव करें
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Inputs List Table -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="p-4 border-b bg-emerald-50">
+                        <h3 class="font-bold text-emerald-900">खाद, बीज व दवाई का पूरा रिकॉर्ड</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-600 border-b">
+                                    <th class="py-3 px-4">तारीख</th>
+                                    <th class="py-3 px-4">श्रेणी</th>
+                                    <th class="py-3 px-4">सामान / मात्रा</th>
+                                    <th class="py-3 px-4">खेत / विवरण</th>
+                                    <th class="py-3 px-4">राशि (₹)</th>
+                                    <th class="py-3 px-4 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inputsTableBody" class="divide-y divide-slate-200">
+                                <tr><td colspan="6" class="py-4 text-center text-slate-400">कोई रिकॉर्ड नहीं है।</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================= -->
+            <!-- SECTION 3: LABOUR, IRRIGATION & OTHER EXPENSES            -->
+            <!-- ========================================================= -->
+            <section id="labourSection" class="hidden space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">
+                        <i class="fas fa-users text-blue-600 mr-2"></i>मजदूरी, सिंचाई, डीजल व अन्य खेती खर्च
+                    </h3>
+                    <form id="labourForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">खर्च का प्रकार</label>
+                            <select id="labourCategory" required class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white">
+                                <option value="मजदूरी (निराई / गुड़ाई / कटाई)">मजदूरी (निराई / गुड़ाई / कटाई)</option>
+                                <option value="सिंचाई / बिजली बिल / डीजल">सिंचाई / बिजली बिल / पंप डीजल</option>
+                                <option value="मंडी हम्माली / तुलाई / परिवहन">मंडी हम्माली / तुलाई / परिवहन</option>
+                                <option value="खेत सुधार / तार फेंसिंग / अन्य">खेत सुधार / तार फेंसिंग / अन्य</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">विवरण (कितने मजदूर / क्या काम) *</label>
+                            <input type="text" id="labourDetails" placeholder="जैसे: 6 मजदूर सोयाबीन निंदाई @ 300" required 
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">खेत का नाम</label>
+                            <select id="labourFieldSelect" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white">
+                                <option value="सामान्य / सभी खेत">सामान्य / सभी खेत</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">तारीख (Date) *</label>
+                            <input type="date" id="labourDate" required class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">कुल राशि (₹) *</label>
+                            <input type="number" id="labourAmount" min="1" placeholder="रुपए लिखें..." required 
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                        </div>
+                        <div class="flex items-end">
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg shadow transition">
+                                <i class="fas fa-save mr-1"></i> खर्च सेव करें
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="p-4 border-b bg-blue-50">
+                        <h3 class="font-bold text-blue-900">मजदूरी व अन्य खर्चों का रिकॉर्ड</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-600 border-b">
+                                    <th class="py-3 px-4">तारीख</th>
+                                    <th class="py-3 px-4">प्रकार</th>
+                                    <th class="py-3 px-4">विवरण</th>
+                                    <th class="py-3 px-4">खेत</th>
+                                    <th class="py-3 px-4">राशि (₹)</th>
+                                    <th class="py-3 px-4 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="labourTableBody" class="divide-y divide-slate-200">
+                                <tr><td colspan="6" class="py-4 text-center text-slate-400">कोई रिकॉर्ड नहीं है।</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================= -->
+            <!-- SECTION 4: CROP HARVEST & INCOME (फसल बिक्री व मुनाफा)      -->
+            <!-- ========================================================= -->
+            <section id="cropSaleSection" class="hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-600">
+                        <p class="text-xs text-slate-500">फसल बिक्री से कुल आमदनी</p>
+                        <h3 id="totalCropIncome" class="text-xl font-bold text-green-700 mt-1">₹0</h3>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-rose-500">
+                        <p class="text-xs text-slate-500">खेती में कुल लागत (खर्च)</p>
+                        <h3 id="compareTotalExpense" class="text-xl font-bold text-rose-600 mt-1">₹0</h3>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-indigo-600">
+                        <p class="text-xs text-slate-500">शुद्ध बचत / मुनाफा (Net Profit)</p>
+                        <h3 id="netProfitDisplay" class="text-xl font-bold text-indigo-700 mt-1">₹0</h3>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">
+                        <i class="fas fa-wheat-awn text-green-600 mr-2"></i>फसल बिक्री (मंडी आवक) दर्ज करें
+                    </h3>
+                    <form id="cropSaleForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">फसल का नाम *</label>
+                            <input type="text" id="cropName" placeholder="जैसे: सोयाबीन, गेहूं, चना, लहसुन..." required 
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">वजन / मात्रा (क्विंटल या बोरी) *</label>
+                            <input type="text" id="cropQty" placeholder="जैसे: 25 क्विंटल @ 4800/क्विंटल" required 
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">खेत का नाम</label>
+                            <select id="cropFieldSelect" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white">
+                                <option value="सामान्य / सभी खेत">सामान्य / सभी खेत</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">मंडी / व्यापारी का नाम</label>
+                            <input type="text" id="cropBuyer" placeholder="मंडी पर्ची नंबर या व्यापारी..." 
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">तारीख (Date) *</label>
+                            <input type="date" id="cropDate" required class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">कुल प्राप्त राशि (₹) *</label>
+                            <input type="number" id="cropAmount" min="1" placeholder="कुल रुपए..." required 
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                        </div>
+                        <div class="md:col-span-3 flex justify-end">
+                            <button type="submit" class="bg-green-700 hover:bg-green-800 text-white font-semibold px-6 py-2.5 rounded-lg shadow transition">
+                                <i class="fas fa-save mr-1"></i> फसल बिक्री सेव करें
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="p-4 border-b bg-green-50">
+                        <h3 class="font-bold text-green-900">फसल बिक्री का रिकॉर्ड</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-600 border-b">
+                                    <th class="py-3 px-4">तारीख</th>
+                                    <th class="py-3 px-4">फसल</th>
+                                    <th class="py-3 px-4">मात्रा / भाव</th>
+                                    <th class="py-3 px-4">खेत / मंडी</th>
+                                    <th class="py-3 px-4">प्राप्त राशि (₹)</th>
+                                    <th class="py-3 px-4 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cropSaleTableBody" class="divide-y divide-slate-200">
+                                <tr><td colspan="6" class="py-4 text-center text-slate-400">कोई रिकॉर्ड नहीं है।</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Firebase SDKs (Auth + Cloud Firestore) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import {
+            getFirestore,
+            collection,
+            doc,
+            addDoc,
+            setDoc,
+            updateDoc,
+            deleteDoc,
+            onSnapshot
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEKFojdvg__D1G1bFxAhW8hOrGF02UCJU",
+            authDomain: "medical-8c32b.firebaseapp.com",
+            projectId: "medical-8c32b",
+            storageBucket: "medical-8c32b.firebasestorage.app",
+            messagingSenderId: "110333435801",
+            appId: "1:110333435801:web:5abc3c7c35c8e19d22fd08",
+            measurementId: "G-HRGC036927"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.firebaseAuth = auth;
+        window.firebaseSignOut = signOut;
+
+        // Global State
+        let ownersList = [];
+        let fieldsList = [];
+        let tractorEntries = [];
+        let inputsEntries = [];
+        let labourEntries = [];
+        let cropSalesEntries = [];
+        let unsubscribers = [];
+
+        // Set Default Dates
+        const todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById('workDate').value = todayStr;
+        document.getElementById('inputDate').value = todayStr;
+        document.getElementById('labourDate').value = todayStr;
+        document.getElementById('cropDate').value = todayStr;
+
+        // ==========================================
+        // 0. AUTHENTICATION GUARD
+        // ==========================================
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('user');
+                sessionStorage.clear();
+                window.location.href = "login.html";
+            } else {
+                localStorage.setItem('isLoggedIn', 'true');
+                if (user.email) {
+                    localStorage.setItem('user', user.email);
+                    document.getElementById('userEmailText').textContent = user.email;
+                    document.getElementById('userBadge').classList.remove('hidden');
+                }
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                startFirestoreListeners();
+            }
+        });
+
+        window.logout = function() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('user');
+            sessionStorage.clear();
+            signOut(auth)
+                .then(() => { window.location.href = "login.html"; })
+                .catch(() => { window.location.href = "login.html"; });
+        };
+
+        function clearListeners() {
+            unsubscribers.forEach(unsub => {
+                try { unsub(); } catch (e) {}
+            });
+            unsubscribers = [];
+        }
+
+        // ==========================================
+        // 1. REALTIME FIRESTORE LISTENERS
+        // ==========================================
+        function startFirestoreListeners() {
+            clearListeners();
+
+            unsubscribers.push(onSnapshot(collection(db, 'kheti_owners'), (snapshot) => {
+                ownersList = [];
+                snapshot.forEach(d => ownersList.push(d.data().name));
+                ownersList.sort();
+                populateOwnerDropdowns();
+                renderOwnerWiseLedger();
+            }, (err) => console.error("Owners error:", err)));
+
+            unsubscribers.push(onSnapshot(collection(db, 'kheti_fields'), (snapshot) => {
+                fieldsList = [];
+                snapshot.forEach(d => fieldsList.push(d.data().name));
+                fieldsList.sort();
+                populateFieldDropdowns();
+            }, (err) => console.error("Fields error:", err)));
+
+            unsubscribers.push(onSnapshot(collection(db, 'kheti_tractor_work'), (snapshot) => {
+                tractorEntries = [];
+                snapshot.forEach(d => tractorEntries.push({ id: d.id, ...d.data() }));
+                tractorEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
+                renderOwnerWiseLedger();
+                updateAllSummaries();
+            }, (err) => console.error("Tractor entries error:", err)));
+
+            unsubscribers.push(onSnapshot(collection(db, 'kheti_inputs'), (snapshot) => {
+                inputsEntries = [];
+                snapshot.forEach(d => inputsEntries.push({ id: d.id, ...d.data() }));
+                inputsEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
+                renderInputsTable();
+                updateAllSummaries();
+            }, (err) => console.error("Inputs error:", err)));
+
+            unsubscribers.push(onSnapshot(collection(db, 'kheti_labour'), (snapshot) => {
+                labourEntries = [];
+                snapshot.forEach(d => labourEntries.push({ id: d.id, ...d.data() }));
+                labourEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
+                renderLabourTable();
+                updateAllSummaries();
+            }, (err) => console.error("Labour error:", err)));
+
+            unsubscribers.push(onSnapshot(collection(db, 'kheti_crop_sales'), (snapshot) => {
+                cropSalesEntries = [];
+                snapshot.forEach(d => cropSalesEntries.push({ id: d.id, ...d.data() }));
+                cropSalesEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
+                renderCropSalesTable();
+                updateAllSummaries();
+            }, (err) => console.error("Crop sales error:", err)));
+        }
+
+        // ==========================================
+        // 2. ADD OWNER & FIELD FUNCTIONS
+        // ==========================================
+        window.addOwner = async function() {
+            const input = document.getElementById('newOwnerName');
+            const name = input.value.trim();
+            if (!name) return alert("कृपया ट्रैक्टर मालिक का नाम लिखें!");
+            if (ownersList.some(o => o.toLowerCase() === name.toLowerCase())) {
+                return alert("यह नाम पहले से सूची में मौजूद है!");
+            }
+            try {
+                const docId = encodeURIComponent(name.toLowerCase());
+                await setDoc(doc(db, 'kheti_owners', docId), { name: name, createdAt: Date.now() });
+                input.value = '';
+                alert("मालिक का नाम जुड़ गया!");
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        window.addField = async function() {
+            const input = document.getElementById('newFieldName');
+            const name = input.value.trim();
+            if (!name) return alert("कृपया खेत का नाम लिखें!");
+            if (fieldsList.some(f => f.toLowerCase() === name.toLowerCase())) {
+                return alert("यह खेत पहले से सूची में मौजूद है!");
+            }
+            try {
+                const docId = encodeURIComponent(name.toLowerCase());
+                await setDoc(doc(db, 'kheti_fields', docId), { name: name, createdAt: Date.now() });
+                input.value = '';
+                alert("खेत का नाम जुड़ गया!");
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        function populateOwnerDropdowns() {
+            const ownerSelect = document.getElementById('ownerSelect');
+            const ownerFilter = document.getElementById('ownerFilter');
+            const currentVal = ownerSelect.value;
+            const currentFilter = ownerFilter.value;
+
+            ownerSelect.innerHTML = '<option value="">-- मालिक चुनें --</option>';
+            ownerFilter.innerHTML = '<option value="ALL">सभी मालिक दिखाएं</option>';
+
+            ownersList.forEach(owner => {
+                ownerSelect.innerHTML += `<option value="${owner}">${owner}</option>`;
+                ownerFilter.innerHTML += `<option value="${owner}">${owner}</option>`;
+            });
+
+            if (ownersList.includes(currentVal)) ownerSelect.value = currentVal;
+            if (ownersList.includes(currentFilter)) ownerFilter.value = currentFilter;
+        }
+
+        function populateFieldDropdowns() {
+            const mainSelect = document.getElementById('fieldSelect');
+            const otherSelects = ['inputFieldSelect', 'labourFieldSelect', 'cropFieldSelect'];
+            const currentMain = mainSelect.value;
+
+            mainSelect.innerHTML = '<option value="">-- खेत चुनें --</option>';
+            fieldsList.forEach(f => {
+                mainSelect.innerHTML += `<option value="${f}">${f}</option>`;
+            });
+            if (fieldsList.includes(currentMain)) mainSelect.value = currentMain;
+
+            otherSelects.forEach(id => {
+                const el = document.getElementById(id);
+                const prev = el.value;
+                el.innerHTML = '<option value="सामान्य / सभी खेत">सामान्य / सभी खेत</option>';
+                fieldsList.forEach(f => {
+                    el.innerHTML += `<option value="${f}">${f}</option>`;
+                });
+                if (prev) el.value = prev;
+            });
+        }
+
+        // ==========================================
+        // 3. BILLING MODE & CALCULATION LOGIC
+        // ==========================================
+        let currentCalculatedTotal = 0;
+
+        window.toggleBillingMode = function() {
+            const mode = document.querySelector('input[name="billingMode"]:checked').value;
+            const hourlyDiv = document.getElementById('hourlyFields');
+            const fixedDiv = document.getElementById('fixedFields');
+            const hLabel = document.getElementById('modeHourlyLabel');
+            const fLabel = document.getElementById('modeFixedLabel');
+
+            if (mode === 'hourly') {
+                hourlyDiv.classList.remove('hidden');
+                fixedDiv.classList.add('hidden');
+                hLabel.classList.add('border-2', 'border-amber-500');
+                hLabel.classList.remove('border', 'border-slate-300');
+                fLabel.classList.remove('border-2', 'border-amber-500');
+                fLabel.classList.add('border', 'border-slate-300');
+                calculateHourlyTotal();
+            } else {
+                hourlyDiv.classList.add('hidden');
+                fixedDiv.classList.remove('hidden');
+                fLabel.classList.add('border-2', 'border-amber-500');
+                fLabel.classList.remove('border', 'border-slate-300');
+                hLabel.classList.remove('border-2', 'border-amber-500');
+                hLabel.classList.add('border', 'border-slate-300');
+                updateFixedTotal();
+            }
+        };
+
+        window.calculateHourlyTotal = function() {
+            const hrs = Number(document.getElementById('workHours').value) || 0;
+            const mins = Number(document.getElementById('workMinutes').value) || 0;
+            const rate = Number(document.getElementById('hourlyRate').value) || 0;
+
+            const totalHours = hrs + (mins / 60);
+            currentCalculatedTotal = Math.round(totalHours * rate);
+            document.getElementById('calculatedAmountDisplay').innerText = `₹${currentCalculatedTotal.toLocaleString('en-IN')}`;
+        };
+
+        window.updateFixedTotal = function() {
+            const amt = Number(document.getElementById('fixedAmount').value) || 0;
+            currentCalculatedTotal = Math.round(amt);
+            document.getElementById('calculatedAmountDisplay').innerText = `₹${currentCalculatedTotal.toLocaleString('en-IN')}`;
+        };
+
+        document.getElementById('tractorForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const owner = document.getElementById('ownerSelect').value;
+            const field = document.getElementById('fieldSelect').value;
+            const date = document.getElementById('workDate').value;
+            const mode = document.querySelector('input[name="billingMode"]:checked').value;
+            const status = document.getElementById('paymentStatus').value;
+
+            if (!owner || !field) return alert("कृपया मालिक और खेत का नाम चुनें!");
+
+            let entryData = {
+                owner,
+                field,
+                date,
+                mode,
+                status,
+                totalAmount: currentCalculatedTotal,
+                timestamp: Date.now()
+            };
+
+            if (mode === 'hourly') {
+                const workType = document.getElementById('hourlyWorkType').value.trim() || "ट्रैक्टर कार्य";
+                const hours = Number(document.getElementById('workHours').value) || 0;
+                const minutes = Number(document.getElementById('workMinutes').value) || 0;
+                const rate = Number(document.getElementById('hourlyRate').value) || 0;
+
+                if (hours === 0 && minutes === 0) return alert("कृपया घंटे या मिनट दर्ज करें!");
+                if (rate <= 0) return alert("कृपया प्रति घंटा रेट दर्ज करें!");
+
+                entryData.workType = workType;
+                entryData.hours = hours;
+                entryData.minutes = minutes;
+                entryData.rate = rate;
+                entryData.details = `${hours} घंटा ${minutes} मिनट @ ₹${rate}/घंटा`;
+            } else {
+                const workType = document.getElementById('fixedWorkType').value.trim();
+                const amount = Number(document.getElementById('fixedAmount').value) || 0;
+                const details = document.getElementById('fixedDetails').value.trim();
+
+                if (!workType || amount <= 0) return alert("कृपया मशीन/काम का प्रकार और राशि दर्ज करें!");
+
+                entryData.workType = workType;
+                entryData.totalAmount = amount;
+                entryData.details = details || "फिक्स / मशीन कार्य";
+            }
+
+            const btn = document.getElementById('saveTractorBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> सेव हो रहा है...';
+
+            try {
+                await addDoc(collection(db, 'kheti_tractor_work'), entryData);
+                document.getElementById('hourlyWorkType').value = '';
+                document.getElementById('workHours').value = '0';
+                document.getElementById('workMinutes').value = '0';
+                document.getElementById('fixedWorkType').value = '';
+                document.getElementById('fixedAmount').value = '';
+                document.getElementById('fixedDetails').value = '';
+                currentCalculatedTotal = 0;
+                document.getElementById('calculatedAmountDisplay').innerText = '₹0';
+                alert("ट्रैक्टर/मशीनरी हिसाब सेव हो गया!");
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> <span>ट्रैक्टर हिसाब सेव करें</span>';
+            }
+        });
+
+        // ==========================================
+        // 4. RENDER OWNER-WISE LEDGER (मालिक वाइस हिसाब)
+        // ==========================================
+        window.renderOwnerWiseLedger = function() {
+            const container = document.getElementById('ownerLedgerContainer');
+            const filterVal = document.getElementById('ownerFilter').value;
+            container.innerHTML = '';
+
+            const grouped = {};
+            tractorEntries.forEach(item => {
+                if (filterVal !== 'ALL' && item.owner !== filterVal) return;
+                if (!grouped[item.owner]) grouped[item.owner] = [];
+                grouped[item.owner].push(item);
+            });
+
+            const ownerNames = Object.keys(grouped).sort();
+
+            if (ownerNames.length === 0) {
+                container.innerHTML = '<div class="bg-white p-8 rounded-xl text-center text-slate-400 shadow-sm">अभी तक कोई ट्रैक्टर या मशीनरी का हिसाब दर्ज नहीं है।</div>';
+                return;
+            }
+
+            ownerNames.forEach(owner => {
+                const items = grouped[owner];
+                let totalSum = 0;
+                let paidSum = 0;
+                let baakiSum = 0;
+                let totalMinsAll = 0;
+
+                items.forEach(i => {
+                    totalSum += Number(i.totalAmount) || 0;
+                    if (i.status === 'paid') paidSum += Number(i.totalAmount) || 0;
+                    else baakiSum += Number(i.totalAmount) || 0;
+
+                    if (i.mode === 'hourly') {
+                        totalMinsAll += ((Number(i.hours) || 0) * 60) + (Number(i.minutes) || 0);
+                    }
+                });
+
+                const totalH = Math.floor(totalMinsAll / 60);
+                const totalM = totalMinsAll % 60;
+
+                let rowsHTML = '';
+                items.forEach(item => {
+                    const isPaid = item.status === 'paid';
+                    const badge = isPaid 
+                        ? `<button type="button" onclick="toggleTractorStatus('${item.id}', 'baaki')" class="bg-emerald-100 text-emerald-800 hover:bg-emerald-200 px-2.5 py-1 rounded-full text-xs font-semibold transition" title="क्लिक करके बाकी में बदलें">✔ जमा (Paid)</button>`
+                        : `<button type="button" onclick="toggleTractorStatus('${item.id}', 'paid')" class="bg-rose-100 text-rose-800 hover:bg-rose-200 px-2.5 py-1 rounded-full text-xs font-semibold transition" title="क्लिक करके जमा करें">⏳ बाकी है</button>`;
+
+                    rowsHTML += `
+                        <tr class="hover:bg-stone-50 transition">
+                            <td class="py-3 px-4 whitespace-nowrap text-slate-600">${formatDate(item.date)}</td>
+                            <td class="py-3 px-4 font-medium text-slate-800">
+                                ${item.workType}
+                                <span class="block text-xs text-slate-500">${item.details}</span>
+                            </td>
+                            <td class="py-3 px-4 text-slate-700"><span class="bg-stone-100 px-2 py-0.5 rounded text-xs font-medium">${item.field}</span></td>
+                            <td class="py-3 px-4 font-bold text-slate-900">₹${Number(item.totalAmount).toLocaleString('en-IN')}</td>
+                            <td class="py-3 px-4 text-center">${badge}</td>
+                            <td class="py-3 px-4 text-center">
+                                <button type="button" onclick="deleteDocItem('kheti_tractor_work', '${item.id}')" class="text-red-500 hover:text-red-700 p-1" title="डिलीट करें">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                const cardHTML = `
+                    <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+                        <div class="bg-amber-50 p-4 border-b border-amber-200 flex flex-wrap justify-between items-center gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-lg">
+                                    ${owner.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg text-slate-800">${owner}</h4>
+                                    <span class="text-xs text-slate-600">कुल कार्य: ${items.length} एंट्री ${totalMinsAll > 0 ? `• कुल समय: ${totalH} घंटे ${totalM} मिनट` : ''}</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-3 text-right">
+                                <div class="bg-white px-3 py-1.5 rounded-lg border border-stone-200">
+                                    <span class="text-[11px] text-slate-500 block">कुल हिसाब</span>
+                                    <span class="font-bold text-slate-800">₹${totalSum.toLocaleString('en-IN')}</span>
+                                </div>
+                                <div class="bg-white px-3 py-1.5 rounded-lg border border-emerald-200">
+                                    <span class="text-[11px] text-emerald-600 block">जमा (Paid)</span>
+                                    <span class="font-bold text-emerald-700">₹${paidSum.toLocaleString('en-IN')}</span>
+                                </div>
+                                <div class="bg-white px-3 py-1.5 rounded-lg border border-rose-200">
+                                    <span class="text-[11px] text-rose-600 block">बाकी देना है</span>
+                                    <span class="font-bold text-rose-700">₹${baakiSum.toLocaleString('en-IN')}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead>
+                                    <tr class="bg-slate-50 text-slate-600 border-b text-xs uppercase">
+                                        <th class="py-2.5 px-4">तारीख</th>
+                                        <th class="py-2.5 px-4">काम व विवरण (घंटे / मशीन)</th>
+                                        <th class="py-2.5 px-4">खेत का नाम</th>
+                                        <th class="py-2.5 px-4">राशि (₹)</th>
+                                        <th class="py-2.5 px-4 text-center">स्थिति (Status)</th>
+                                        <th class="py-2.5 px-4 text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200">
+                                    ${rowsHTML}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += cardHTML;
+            });
+        };
+
+        window.toggleTractorStatus = async function(id, newStatus) {
+            try {
+                await updateDoc(doc(db, 'kheti_tractor_work', id), { status: newStatus });
+            } catch (e) {
+                alert("Error updating status: " + e.message);
+            }
+        };
+
+        // ==========================================
+        // 5. INPUTS (KHAD / BEEJ / DAWAI) LOGIC
+        // ==========================================
+        document.getElementById('inputsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                category: document.getElementById('inputCategory').value,
+                itemName: document.getElementById('inputItemName').value.trim(),
+                field: document.getElementById('inputFieldSelect').value,
+                note: document.getElementById('inputShopNote').value.trim(),
+                date: document.getElementById('inputDate').value,
+                amount: Number(document.getElementById('inputAmount').value) || 0,
+                timestamp: Date.now()
+            };
+            try {
+                await addDoc(collection(db, 'kheti_inputs'), data);
+                document.getElementById('inputItemName').value = '';
+                document.getElementById('inputShopNote').value = '';
+                document.getElementById('inputAmount').value = '';
+                alert("खाद-बीज खर्च सेव हो गया!");
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        });
+
+        function renderInputsTable() {
+            const tbody = document.getElementById('inputsTableBody');
+            tbody.innerHTML = '';
+            if (inputsEntries.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-slate-400">कोई रिकॉर्ड नहीं है।</td></tr>';
+                return;
+            }
+            inputsEntries.forEach(item => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-3 px-4 whitespace-nowrap">${formatDate(item.date)}</td>
+                        <td class="py-3 px-4 text-xs font-semibold text-emerald-800">${item.category}</td>
+                        <td class="py-3 px-4 font-medium text-slate-800">${item.itemName}</td>
+                        <td class="py-3 px-4 text-slate-600">${item.field} ${item.note ? `(${item.note})` : ''}</td>
+                        <td class="py-3 px-4 font-bold text-slate-900">₹${Number(item.amount).toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-4 text-center">
+                            <button type="button" onclick="deleteDocItem('kheti_inputs', '${item.id}')" class="text-red-500 hover:text-red-700 p-1"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ==========================================
+        // 6. LABOUR & OTHER EXPENSES LOGIC
+        // ==========================================
+        document.getElementById('labourForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                category: document.getElementById('labourCategory').value,
+                details: document.getElementById('labourDetails').value.trim(),
+                field: document.getElementById('labourFieldSelect').value,
+                date: document.getElementById('labourDate').value,
+                amount: Number(document.getElementById('labourAmount').value) || 0,
+                timestamp: Date.now()
+            };
+            try {
+                await addDoc(collection(db, 'kheti_labour'), data);
+                document.getElementById('labourDetails').value = '';
+                document.getElementById('labourAmount').value = '';
+                alert("मजदूरी/अन्य खर्च सेव हो गया!");
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        });
+
+        function renderLabourTable() {
+            const tbody = document.getElementById('labourTableBody');
+            tbody.innerHTML = '';
+            if (labourEntries.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-slate-400">कोई रिकॉर्ड नहीं है।</td></tr>';
+                return;
+            }
+            labourEntries.forEach(item => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-3 px-4 whitespace-nowrap">${formatDate(item.date)}</td>
+                        <td class="py-3 px-4 text-xs font-semibold text-blue-800">${item.category}</td>
+                        <td class="py-3 px-4 font-medium text-slate-800">${item.details}</td>
+                        <td class="py-3 px-4 text-slate-600">${item.field}</td>
+                        <td class="py-3 px-4 font-bold text-slate-900">₹${Number(item.amount).toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-4 text-center">
+                            <button type="button" onclick="deleteDocItem('kheti_labour', '${item.id}')" class="text-red-500 hover:text-red-700 p-1"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ==========================================
+        // 7. CROP SALES (INCOME) LOGIC
+        // ==========================================
+        document.getElementById('cropSaleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                cropName: document.getElementById('cropName').value.trim(),
+                qty: document.getElementById('cropQty').value.trim(),
+                field: document.getElementById('cropFieldSelect').value,
+                buyer: document.getElementById('cropBuyer').value.trim(),
+                date: document.getElementById('cropDate').value,
+                amount: Number(document.getElementById('cropAmount').value) || 0,
+                timestamp: Date.now()
+            };
+            try {
+                await addDoc(collection(db, 'kheti_crop_sales'), data);
+                document.getElementById('cropName').value = '';
+                document.getElementById('cropQty').value = '';
+                document.getElementById('cropBuyer').value = '';
+                document.getElementById('cropAmount').value = '';
+                alert("फसल बिक्री सेव हो गई!");
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        });
+
+        function renderCropSalesTable() {
+            const tbody = document.getElementById('cropSaleTableBody');
+            tbody.innerHTML = '';
+            if (cropSalesEntries.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-slate-400">कोई रिकॉर्ड नहीं है।</td></tr>';
+                return;
+            }
+            cropSalesEntries.forEach(item => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-3 px-4 whitespace-nowrap">${formatDate(item.date)}</td>
+                        <td class="py-3 px-4 font-bold text-green-800">${item.cropName}</td>
+                        <td class="py-3 px-4 text-slate-700">${item.qty}</td>
+                        <td class="py-3 px-4 text-slate-600">${item.field} ${item.buyer ? `(${item.buyer})` : ''}</td>
+                        <td class="py-3 px-4 font-bold text-green-700">₹${Number(item.amount).toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-4 text-center">
+                            <button type="button" onclick="deleteDocItem('kheti_crop_sales', '${item.id}')" class="text-red-500 hover:text-red-700 p-1"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ==========================================
+        // 8. SUMMARY, TABS & HELPERS
+        // ==========================================
+        function updateAllSummaries() {
+            const tractorTotal = tractorEntries.reduce((sum, i) => sum + (Number(i.totalAmount) || 0), 0);
+            const inputsTotal = inputsEntries.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+            const labourTotal = labourEntries.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+            const grandExpense = tractorTotal + inputsTotal + labourTotal;
+            const cropIncome = cropSalesEntries.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+            const netProfit = cropIncome - grandExpense;
+
+            document.getElementById('sumTractor').innerText = `₹${tractorTotal.toLocaleString('en-IN')}`;
+            document.getElementById('sumInputs').innerText = `₹${inputsTotal.toLocaleString('en-IN')}`;
+            document.getElementById('sumLabour').innerText = `₹${labourTotal.toLocaleString('en-IN')}`;
+            document.getElementById('sumGrandTotal').innerText = `₹${grandExpense.toLocaleString('en-IN')}`;
+
+            document.getElementById('totalCropIncome').innerText = `₹${cropIncome.toLocaleString('en-IN')}`;
+            document.getElementById('compareTotalExpense').innerText = `₹${grandExpense.toLocaleString('en-IN')}`;
+            const profitEl = document.getElementById('netProfitDisplay');
+            profitEl.innerText = `₹${netProfit.toLocaleString('en-IN')}`;
+            profitEl.className = netProfit >= 0 ? "text-xl font-bold text-green-700 mt-1" : "text-xl font-bold text-rose-600 mt-1";
+        }
+
+        window.deleteDocItem = async function(colName, docId) {
+            if (confirm("क्या आप वाकई इस एंट्री को डिलीट करना चाहते हैं?")) {
+                try {
+                    await deleteDoc(doc(db, colName, docId));
+                } catch (e) {
+                    alert("Error deleting: " + e.message);
+                }
+            }
+        };
+
+        window.switchSection = function(sectionId) {
+            const sections = ['tractorSection', 'inputsSection', 'labourSection', 'cropSaleSection'];
+            const tabs = {
+                'tractorSection': 'tabTractor',
+                'inputsSection': 'tabInputs',
+                'labourSection': 'tabLabour',
+                'cropSaleSection': 'tabCropSale'
+            };
+
+            sections.forEach(sec => {
+                document.getElementById(sec).classList.add('hidden');
+                const btn = document.getElementById(tabs[sec]);
+                btn.classList.remove('tab-active');
+                btn.classList.add('tab-inactive');
+            });
+
+            document.getElementById(sectionId).classList.remove('hidden');
+            const activeBtn = document.getElementById(tabs[sectionId]);
+            activeBtn.classList.remove('tab-inactive');
+            activeBtn.classList.add('tab-active');
+        };
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const [y, m, d] = dateStr.split('-');
+            return `${d}-${m}-${y}`;
+        }
+    </script>
+</body>
+</html>
